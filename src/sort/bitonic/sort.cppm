@@ -34,8 +34,6 @@ module;
 
 #include "CL/opencl.hpp"
 
-#define STYPE STRINGIFY(TYPE)
-
 //----------------------------------------------------------------------------------------------------------------------------
 
 export module bitonic_sort;
