@@ -1,0 +1,17 @@
+.venv
+build/
+.vscode/
+settings.json
+*.png
+Doxyfile
+imgs/
+logs/
+.cache
+tmp/
+*.dot
+dot-out/
+
+# too big
+tests/benchmark/dat/1000000-elem/
+tests/benchmark/dat/10000000-elem/
+tests/benchmark/dat/100000000-elem/

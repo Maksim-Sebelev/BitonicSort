@@ -1,0 +1,46 @@
+#!/bin/bash
+
+set -euo pipefail
+
+bitonicsort="@PROJECT_BINARY_DIR@/@BITONICSORST_TIME_MEASURE@"
+stdsort="@PROJECT_BINARY_DIR@/@STDSORT_TIME_MEASURE@"
+
+benchmark_dat_dir="@BENCHMARK_DAT_DIR@"
+
+function run_benchmar_with_n_elems
+{
+    local n="$1"
+
+    dir="$benchmark_dat_dir/$n-elem"
+
+    echo "Elements: $n"
+
+    echo "Bitonic: "
+
+    for d in "$dir"/*; do
+        "$bitonicsort" < $d
+    done
+
+    echo
+    echo "std::sort: "
+
+    for d in "$dir"/*; do
+        "$stdsort" < $d
+    done 
+
+    echo
+    echo
+}
+
+echo "Comparing bitonic and std:: sort fuctions."
+echo
+echo
+
+run_benchmar_with_n_elems 10
+run_benchmar_with_n_elems 100
+run_benchmar_with_n_elems 1000
+run_benchmar_with_n_elems 10000
+run_benchmar_with_n_elems 100000
+# run_benchmar_with_n_elems 1000000
+# run_benchmar_with_n_elems 10000000
+# run_benchmar_with_n_elems 100000000

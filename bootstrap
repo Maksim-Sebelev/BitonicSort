@@ -1,0 +1,352 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# Console colors
+CONSOLE_COLOR_GREEN='\x1b[32m'
+CONSOLE_COLOR_WHITE='\e[0;37m'
+CONSOLE_COLOR_YELLOW='\e[0;33m'
+CONSOLE_COLOR_RED='\x1b[31m'
+CONSOLE_BIND_FONT='\e[1m'
+RESET_CONSOLE_OUTPUT_SETTINGS='\e[0m'
+
+# console echo-wrapper functions
+function custom_echo
+{
+    local color=$1 font=$2 msg=$3
+
+    echo -e "${color}${font}${msg}${RESET_CONSOLE_OUTPUT_SETTINGS}"
+}
+
+function custom_echo_err
+{
+    local color=${CONSOLE_COLOR_RED} font=${CONSOLE_BIND_FONT} msg=$1
+
+    echo -e "${color}${font}${msg}${RESET_CONSOLE_OUTPUT_SETTINGS}" >&2
+}
+
+function skip_line_in_console
+{
+    echo
+}
+
+
+# set some script-global variables
+project_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+build_dir="$project_dir/build"
+source_dir="$project_dir"
+
+# declare variables for options parsing
+INSTALLATION_PREFIX=${build_dir}
+CXX_COMPILER=clang++
+BUILD_SYSTEM=Ninja
+BUILD_TYPE=Release
+CMAKE_EXPERIMENTAL_CXX_IMPORT_STD=OFF
+CMAKE_INSTALL_PREFIX=${build_dir}
+CMAKE_EXPORT_COMPILE_COMMANDS=OFF
+BUILD_INPLACE=OFF
+BENCHMARK=OFF
+BUILD_TESTS=OFF
+SANITIZE=OFF
+INSTALL_DEPENDENCIES=OFF
+
+# help message function
+function usage()
+{
+  cat << EOF
+Usage: $0 [OPTIONS]
+
+Options:
+  --build-inplace
+                        Use this option, if you you want not only generates
+                        build system, and also build project with it.
+                        library will be created in
+                        ${build_dir}
+
+  -p, --prefix          Installation prefix for this library.
+                        Default value: ${build_dir}.
+                        Often users use values, like:
+                            /usr/local
+                            ~/.local
+
+  --cmake-experimental-cxx-import-std
+                        If your compiler supported 23 standart of C++,
+                        you can try this option. You need to set her value,
+                        like for 'CMAKE_EXPERIMENTAL_CXX_IMPORT_STD' in cmake.
+                        More, about support of 'import std;' in cmake,
+                        you can read in official cmake documentaion.
+
+  --cmake-export-compile-commands
+                        If you need a json-file in build directory with compile commands,
+                        which cmake generate, use this option (for example, clangd needs this).
+
+  -c, --compiler        C++ compiler, whick will be compile this library.
+                        Default value: ${CXX_COMPILER}
+
+  -g, --generator       Build system, whick cmake will be generate.
+                        Set to this option your build-system name,
+                        in cmake format. You can read about this with 'cmake -G'.
+                        Default value: ${BUILD_SYSTEM}
+
+  -t, --build-tests     Build tests for this library.
+                            Use 'ctest' to run tests.
+
+  -b, --benchmark       Build benchmark-executables sources.
+                            Also in benchmark bitonic-sort compares
+                            with std::sort.
+
+  -d, --debug           Build debug version of this library.
+
+  -s, --sanitize        Use sanitizers for this library (for debug).
+
+  -h, --help            Show this help message.
+EOF
+  exit 1
+}
+
+
+function bad_option
+{
+    local opt="$1"
+
+    custom_echo_err "Undefined option: '${opt}'"
+    usage
+}
+
+function parse_options
+{
+    custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Parse script options..."
+
+    local SHORT_OPTS="p:c:g:tdsh"
+    local LONG_OPTS="build-inplace,prefix:,compiler:,generator:,build-tests,benchmark,debug,sanitize,help,cmake-experimental-cxx-import-std:,cmake-export-compile-commands,install-dependencies"
+
+    TEMP=$(getopt -o "$SHORT_OPTS" \
+                  -l "$LONG_OPTS" \
+                  -n "$0" \
+                  -- "$@")
+
+    if [[ $? != 0 ]]; then
+        echo "Something went wrong..."
+        usage
+        exit 1
+    fi
+
+    eval set -- "$TEMP"
+
+    while true; do
+        case "$1" in
+            -p | --prefix)
+                INSTALLATION_PREFIX="$2"
+                CMAKE_INSTALL_PREFIX="$2"
+                shift 2
+                ;;
+
+            --install-dependencies)
+                INSTALL_DEPENDENCIES=ON
+                shift
+                ;;
+
+            --build-inplace)
+                BUILD_INPLACE=ON
+                shift
+                ;;
+
+            --cmake-experimental-cxx-import-std)
+                CMAKE_EXPERIMENTAL_CXX_IMPORT_STD="$2"
+                shift 2
+                ;;
+
+            --cmake-export-compile-commands)
+                CMAKE_EXPORT_COMPILE_COMMANDS=ON
+                shift
+                ;;
+
+            -c | --compiler)
+                CXX_COMPILER="$2"
+                shift 2
+                ;;
+
+            -g | --generator)
+                BUILD_SYSTEM="$2"
+                shift 2
+                ;;
+
+            -t | --build-tests)
+                BUILD_TESTS=ON
+                shift
+                ;;
+
+            -b | --benchmark)
+                BENCHMARK=ON
+                shift
+                ;;
+
+            -d | --debug)
+                BUILD_TYPE=Debug
+                shift
+                ;;
+
+            -s | --sanitize)
+                SANITIZE=ON
+                shift
+                ;;
+
+            -h | --help)
+                usage
+                exit 0
+                ;;
+
+            --)
+                shift
+                break
+                ;;
+
+            *)
+                bad_option "$1"                
+                ;;
+        esac
+    done
+
+    if [ "${BENCHMARK}" = "ON" ] && [ "${CMAKE_EXPERIMENTAL_CXX_IMPORT_STD}" != "OFF" ]; then
+        echo -e "Hello from the beginning of 2026!"
+        echo -e "After 6 years of including C++ modules in the standard,"
+        echo -e "and 3 years after including 'import std;' in the standard,"
+        echo -e "we still don't have proper support for these features in GCC."
+        echo -e "Therefore, we need to use Clang for .cppm modules,"
+        echo -e "and libc++ (Clang's C++ standard library) for 'import std;'."
+        echo -e "${CONSOLE_COLOR_YELLOW}"
+        echo -e "As you probably know, most libraries for Linux are built with libstdc++."
+        echo -e "So if you want to use 'import std;', you must be prepared"
+        echo -e "that you can only link with libraries built with libc++."
+        echo -e "Since you want to benchmark this library, you cannot use it with Google Benchmark"
+        echo -e "if you installed it via your distribution's package manager."
+        echo -e "You can try to build Google Benchmark from source with libc++,"
+        echo -e "or avoid using the '--cmake-experimental-cxx-import-std' option."
+        echo -e ""
+        echo -e "${CONSOLE_COLOR_RED}"
+        echo -e "Please be aware that with the current bootstrap options, the project will not build."
+        echo -e "${RESET_CONSOLE_OUTPUT_SETTINGS}"
+    fi
+
+    custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Parse command-line options completed successfully."
+    skip_line_in_console
+}
+
+
+function clean_build_directory
+{
+    local build_dir="$1"
+    # clean build directory if exists and not empty
+    if [ -d "${build_dir}" ] && [ -n "$(ls -A "${build_dir}" 2>/dev/null)" ]; then
+        custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Cleaning directory: ${build_dir}/"
+        custom_echo "${CONSOLE_COLOR_WHITE}" "" "rm -rf ${build_dir}/"
+        skip_line_in_console
+        rm -rf "${build_dir}/"
+    fi
+}
+
+function check_that_exists
+{
+    local program=$1
+
+    if ! command -v "${program}" >/dev/null 2>&1; then
+        custom_echo_err "'${program}' not found."
+        custom_echo_err "This script requires '${program}' to be installed."
+        return 1
+    fi
+
+    return 0
+}
+
+function check_this_script_dependencies
+{
+    custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Checking this script dependencies..."
+
+    check_that_exists cmake || exit 1
+    check_that_exists rm || exit 1
+    check_that_exists conan || exit 1
+
+    custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "All script dependencies was found."
+    skip_line_in_console
+}
+
+function install_dependencies
+{
+    conan install --build=missing -of "${build_dir}"
+}
+
+function run_cmake()
+{
+    custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Generating build system..."
+
+    cmake_command="cmake \
+-S \"${source_dir}\" \
+-B \"${build_dir}\" \
+-G \"${BUILD_SYSTEM}\" \
+-DCMAKE_CXX_COMPILER=\"${CXX_COMPILER}\" \
+-DCMAKE_BUILD_TYPE=${BUILD_TYPE}"
+
+    if [ ${SANITIZE} == "ON" ]; then
+        cmake_command="${cmake_command} -DSANITIZE=ON"
+    fi
+
+    if [ ${BUILD_TESTS} == "ON" ]; then
+        cmake_command="${cmake_command} -DBUILD_TESTS=ON"
+    fi
+
+    if [ ${BENCHMARK} == "ON" ]; then
+        cmake_command="${cmake_command} -DBENCHMARK=ON"
+    fi
+
+    if [ ${CMAKE_EXPORT_COMPILE_COMMANDS} == "ON" ]; then
+        cmake_command="${cmake_command} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+    fi
+
+    if [ ${CMAKE_EXPERIMENTAL_CXX_IMPORT_STD} != "OFF" ]; then
+        cmake_command="${cmake_command} -DCMAKE_EXPERIMENTAL_CXX_IMPORT_STD=${CMAKE_EXPERIMENTAL_CXX_IMPORT_STD}"
+    fi
+
+    custom_echo "${CONSOLE_COLOR_WHITE}" "" "${cmake_command}"
+    eval ${cmake_command}
+
+    custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Generating build system completed successfully."
+    skip_line_in_console
+}
+
+function build_inplace
+{
+
+    custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Building project..."
+    build_command="cmake --build ${build_dir}/ --parallel $(nproc)"
+    custom_echo "${CONSOLE_COLOR_WHITE}" "" "${build_command}"
+    eval ${build_command}
+    skip_line_in_console
+
+    custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Library was successfully writed in:" 
+    custom_echo "${CONSOLE_COLOR_WHITE}" "" "${build_dir}"
+    skip_line_in_console
+}
+
+function finally_bootstrap_message
+{
+    if [ "${BUILD_INPLACE}" == "ON" ]; then
+        custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Building project completed successfully."
+        skip_line_in_console
+    
+    else
+        custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Now run ninja (or make, your build system anyway): "
+        custom_echo "${CONSOLE_COLOR_WHITE}" "" "ninja && ninja install"
+    fi
+}
+
+check_this_script_dependencies
+clean_build_directory "${build_dir}"
+parse_options "$@"
+if [ "${INSTALL_DEPENDENCIES}" == "ON" ]; then
+install_dependencies
+fi
+run_cmake
+if [ "${BUILD_INPLACE}" == "ON" ]; then
+build_inplace
+fi
+finally_bootstrap_message

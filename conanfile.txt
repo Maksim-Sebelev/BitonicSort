@@ -1,0 +1,10 @@
+[requires]
+benchmark/1.9.4
+gopengl/system
+
+[generators]
+CMakeDeps
+CMakeToolchain
+
+[layout]
+cmake_layout
