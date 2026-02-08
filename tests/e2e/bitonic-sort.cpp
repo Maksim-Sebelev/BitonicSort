@@ -1,8 +1,6 @@
 #include <iostream>
 #include <vector>
 #include <stdexcept>
-#include <boost/stacktrace.hpp>
-#include <boost/stacktrace/stacktrace.hpp>
 
 #include <global/macros.hpp>
 
@@ -15,7 +13,7 @@
 #define CL_HPP_ENABLE_EXCEPTIONS
 
 #include <CL/cl.h>
-#include "CL/opencl.hpp"
+#include <CL/opencl.hpp>
 
 #if defined(BITONICSORT_MODULES)
 import bitonic_sort;

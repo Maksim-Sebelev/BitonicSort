@@ -56,7 +56,7 @@ target_compile_definitions(${BITONICSORT_RUNNER}
     BITONICSORT_OPENCL_KERNEL="${SRC_DIR}/sort/bitonic/sort.cl"
 )
 
-if (BITONICSORT_SHOW_EXCEPTION_STACKTRACE)
+if (BITONICSORT_MODULES)
 add_target_stacktrace_dump_lib(${BITONICSORT_RUNNER})
 endif()
 
