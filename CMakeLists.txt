@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.30)
 
-project(bitonic_sort
-  VERSION 1.0
+project(BitonicSort
+  VERSION 1.1
   LANGUAGES CXX
 )
 
@@ -65,7 +65,7 @@ target_compile_definitions(${MATH_LIB}
 set(SORT_SRC_DIR ${SRC_DIR}/sort)
 
 set(BITONICSORT_LIB bitonic)
-set(BITONICSORT_LIB_IMPL __${BITONICSORT_LIB})
+set(BITONICSORT_LIB ${BITONICSORT_LIB})
 set(BITONICSORT_SRC_DIR ${SORT_SRC_DIR}/bitonic)
 
 set(BITONICSORT_SRCS
@@ -74,9 +74,9 @@ set(BITONICSORT_SRCS
 
 set(BITONICSORT_OPENCL_KERNEL ${BITONICSORT_SRC_DIR}/sort.cl)
 
-add_library(${BITONICSORT_LIB_IMPL})
+add_library(${BITONICSORT_LIB})
 
-target_sources(${BITONICSORT_LIB_IMPL}
+target_sources(${BITONICSORT_LIB}
   PUBLIC
     FILE_SET CXX_MODULES
     TYPE CXX_MODULES
@@ -84,19 +84,18 @@ target_sources(${BITONICSORT_LIB_IMPL}
       ${BITONICSORT_SRCS}
 )
 
-target_link_libraries(${BITONICSORT_LIB_IMPL}
+target_link_libraries(${BITONICSORT_LIB}
   PUBLIC
     OpenCL
     ${MATH_LIB}
 )
 
-target_include_directories(${BITONICSORT_LIB_IMPL}
+target_include_directories(${BITONICSORT_LIB}
   PRIVATE
     ${INC_DIR}
-    ${TEST_DIR}/e2e
 )
 
-target_compile_definitions(${BITONICSORT_LIB_IMPL}
+target_compile_definitions(${BITONICSORT_LIB}
   PRIVATE
     $<$<BOOL:${CMAKE_CXX_MODULE_STD}>:BITONICSORT_CXX_23_SUPPORT>
     BITONICSORT_OPENCL_KERNEL="${BITONICSORT_OPENCL_KERNEL}"
@@ -105,11 +104,18 @@ target_compile_definitions(${BITONICSORT_LIB_IMPL}
 # ==================================================================================
 
 set(BITONICSORT_NAMESPACE sort)
-add_library(${BITONICSORT_NAMESPACE}::${BITONICSORT_LIB} ALIAS ${BITONICSORT_LIB_IMPL})
 
 # ==================================================================================
 
 set(TEST_DIR ${CMAKE_SOURCE_DIR}/tests)
+
+# ==================================================================================
+# install like library if enabled
+
+if (INSTALL)
+  message(${INSTALL})
+  include(${CMAKE_SETTINGS_DIR}/install/install-bitonicsort.cmake)
+endif()
 
 # ==================================================================================
 # building tests if enabled

@@ -3,8 +3,8 @@ from random import *
 int_min = -2147483648
 int_max =  2147483647
 
-min_size = 10000000
-max_size = 10000000
+min_size = 100000000
+max_size = 100000000
 
 n = randint(min_size, max_size)
 

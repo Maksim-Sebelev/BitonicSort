@@ -13,16 +13,22 @@ function run_benchmar_with_n_elems
 
     dir="$benchmark_dat_dir/$n-elem"
 
+    if ! [ -d "$dir" ]; then
+        echo "No such directory: '$dir'"
+        echo "Skip benchmark"
+        return
+    fi
+
     echo "Elements: $n"
 
-    echo "Bitonic: "
+    echo "Bitonic:"
 
     for d in "$dir"/*; do
         "$bitonicsort" < $d
     done
 
     echo
-    echo "std::sort: "
+    echo "std::sort:"
 
     for d in "$dir"/*; do
         "$stdsort" < $d
@@ -41,6 +47,6 @@ run_benchmar_with_n_elems 100
 run_benchmar_with_n_elems 1000
 run_benchmar_with_n_elems 10000
 run_benchmar_with_n_elems 100000
-# run_benchmar_with_n_elems 1000000
-# run_benchmar_with_n_elems 10000000
-# run_benchmar_with_n_elems 100000000
+run_benchmar_with_n_elems 1000000
+run_benchmar_with_n_elems 10000000
+run_benchmar_with_n_elems 100000000

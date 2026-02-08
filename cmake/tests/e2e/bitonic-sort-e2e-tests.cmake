@@ -40,7 +40,7 @@ add_executable(${BITONICSORT_RUNNER}
 
 target_link_libraries(${BITONICSORT_RUNNER}
   PRIVATE
-    ${BITONICSORT_LIB_IMPL}
+    ${BITONICSORT_LIB}
     ${STACKTRACE_LIB}
 )
 

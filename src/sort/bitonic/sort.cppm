@@ -131,8 +131,9 @@ class OpenCLSorting
         return "unknown";
     }
 
-    using sort_t = cl::KernelFunctor<cl::Buffer, cl_uint, cl_uint, cl_uint>;
-    
+    // using sort_t = cl::KernelFunctor<cl::Buffer, cl_uint, cl_uint, cl_uint>;
+    using sort_t = cl::KernelFunctor<cl::Buffer, cl_uint>;
+
     template <BitonicSortIteratorConcept It>
     void add_type_define_in_kernel();
     template <BitonicSortIteratorConcept It>
@@ -204,7 +205,7 @@ cl::Buffer OpenCLSorting::copy_input_on_queue(It begin, It end, size_t& cl_buf_s
 OpenCLSorting::sort_t OpenCLSorting::get_gpu_part_of_sort_function()
 {
     cl::Program program(context_, kernel_, BUILD_KERNEL_IMMEDIATELY);
-    return sort_t{program, "bitonic_sort_gpu_part"};
+    return sort_t{program, "bitonic_sort_gpu"};
 }
 
 //-----------------------------------------------------------------------------
@@ -212,15 +213,6 @@ OpenCLSorting::sort_t OpenCLSorting::get_gpu_part_of_sort_function()
 template <BitonicSortIteratorConcept It>
 void OpenCLSorting::sort(It begin, It end)
 {
-ON_TIME(
-    std::chrono::high_resolution_clock::time_point TimeStart, TimeFin;
-    cl_ulong GPUTimeStart, GPUTimeFin;
-    unsigned long long summary_gpu_time = 0;
-    long Dur, GDur;
-
-    TimeStart = std::chrono::high_resolution_clock::now();
-) /* ON_TIME */
-
     add_type_define_in_kernel<It>();
 
     size_t cl_buf_size;
@@ -228,32 +220,19 @@ ON_TIME(
     sort_t gpu_part_of_sort = get_gpu_part_of_sort_function();
 
 	cl::NDRange GlobalRange(cl_buf_size);
+    cl::NDRange LocalRange(32);
     cl::EnqueueArgs Args(queue_, GlobalRange);
 
-    for (size_t block_size = 2; block_size <= cl_buf_size; block_size <<= 1)
-    {
-        for (size_t compare_distance_bit_mask = (block_size >> 1); compare_distance_bit_mask > 0; compare_distance_bit_mask >>= 1)
-        {
-            cl::Event Evt = gpu_part_of_sort(Args, cl_data, cl_buf_size, block_size, compare_distance_bit_mask);
-            Evt.wait();
-
-ON_TIME(
-            GPUTimeStart = Evt.getProfilingInfo<CL_PROFILING_COMMAND_START>();
-            GPUTimeFin = Evt.getProfilingInfo<CL_PROFILING_COMMAND_END>();
-            summary_gpu_time += (GPUTimeFin - GPUTimeStart);
-) /* ON_TIME */
-        }
-    }
+    cl::Event Evt = gpu_part_of_sort(Args, cl_data, cl_buf_size);
+    Evt.wait();
 
     cl::copy(queue_, cl_data, begin, end);
 
 ON_TIME(
-    GDur = summary_gpu_time / 1000000; // ns -> ms
+    cl_ulong GPUTimeStart = Evt.getProfilingInfo<CL_PROFILING_COMMAND_START>();
+    ck_ulong GPUTimeFin = Evt.getProfilingInfo<CL_PROFILING_COMMAND_END>();
+    GDur = (GPUTimeFin - GPUTimeStart) / 1000000; // ns -> ms
     std::cout << "GPU pure time measured: " << GDur << " ms" << std::endl;
-
-    TimeFin = std::chrono::high_resolution_clock::now();
-    Dur = std::chrono::duration_cast<std::chrono::milliseconds>(TimeFin - TimeStart).count();
-    std::cout << "GPU wall time measured: " << Dur << " ms" << std::endl;
 ) /* ON_TIME */
 }
 

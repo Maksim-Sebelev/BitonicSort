@@ -55,6 +55,7 @@ def check_same_elements(original, result):
 
 def viz_errs(numbers):
     if (len(numbers) <= 1):
+        print(f"{Colors.GREEN}TEST PASSED{Colors.RESET}")
         return
 
     output = f"{Colors.GREEN}{numbers[0]}{Colors.RESET}"
@@ -102,6 +103,7 @@ def main():
     # Run sort program
     result = run_sort_program(executable, input_data)
     if result is None:
+        print(f"{Colors.RED}TEST FAILED{Colors.RESET}")
         return 1
     
     exit_code, stdout, stderr = result
@@ -113,6 +115,8 @@ def main():
             print("STDOUT:", stdout, file=sys.stderr)
         if stderr:
             print("STDERR:", stderr, file=sys.stderr)
+        
+        print(f"{Colors.RED}TEST FAILED{Colors.RESET}")
         return 1
 
     # Parse result numbers

@@ -29,15 +29,15 @@ set(BITONICSORST_TIME_MEASURE bitonic-benchmark)
 set(STDSORT_TIME_MEASURE stdsort-benchmark)
 
 # =================================================================================================
-create_benchmark("${BITONICSORST_TIME_MEASURE}" "bitonicsort-time-measure.cpp" "sort::bitonic" "")
+
+create_benchmark("${BITONICSORST_TIME_MEASURE}" "bitonicsort-time-measure.cpp" "${BITONICSORT_LIB}" "")
 create_benchmark("${STDSORT_TIME_MEASURE}" "stdsort-time-measure.cpp" "" "")
 
 # =================================================================================================
-# creating run_test from run_test.in
+# creating run_test from run_test.sh.in
 
 set(RUN_BENCHMARK_SCRIPT_IN ${BENCHMARK_SRC_DIR}/run-benchmark.sh.in)
 set(RUN_BENCHMARK_OUTPUT_SCRIPT ${PROJECT_BINARY_DIR}/run-benchmark)
-
 
 configure_file(
     ${RUN_BENCHMARK_SCRIPT_IN}
