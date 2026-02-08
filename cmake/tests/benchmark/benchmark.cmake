@@ -7,21 +7,24 @@ function(create_benchmark target source to_link to_include)
     add_executable(${target}
       ${BENCHMARK_SRC_DIR}/${source}
     )
-
     target_link_libraries(${target}
       PRIVATE
         ${to_link}
+        $<$<BOOL:${BITONICSORT_HEADER_ONLY}>:OpenCL::OpenCL>
     )
 
     target_include_directories(${target}
       PRIVATE
         ${BENCHMARK_SRC_DIR}
+        ${INC_DIR}
         ${to_include}
     )
 
     target_compile_definitions(${target}
       PRIVATE
-          $<$<BOOL:${CMAKE_CXX_MODULE_STD}>:BITONICSORT_CXX_23_SUPPORT>
+        $<$<BOOL:${BITONICSORT_MODULES}>:BITONICSORT_MODULES>
+        $<$<BOOL:${CMAKE_CXX_MODULE_STD}>:BITONICSORT_CXX_23_SUPPORT>
+        BITONICSORT_OPENCL_KERNEL="${SRC_DIR}/sort/bitonic/sort.cl"
     )
 endfunction(create_benchmark target)
 
@@ -30,7 +33,12 @@ set(STDSORT_TIME_MEASURE stdsort-benchmark)
 
 # =================================================================================================
 
-create_benchmark("${BITONICSORST_TIME_MEASURE}" "bitonicsort-time-measure.cpp" "${BITONICSORT_LIB}" "")
+if (BITONICSORT_MODULES)
+  create_benchmark("${BITONICSORST_TIME_MEASURE}" "bitonicsort-time-measure.cpp" "${BITONICSORT_LIB}" "")
+else()
+  create_benchmark("${BITONICSORST_TIME_MEASURE}" "bitonicsort-time-measure.cpp" "" "")
+endif()
+
 create_benchmark("${STDSORT_TIME_MEASURE}" "stdsort-time-measure.cpp" "" "")
 
 # =================================================================================================

@@ -17,13 +17,12 @@
 #include <CL/cl.h>
 #include "CL/opencl.hpp"
 
-#ifndef COMPARE_CPU
-#define COMPARE_CPU
-#endif
-
+#if defined(BITONICSORT_MODULES)
 import bitonic_sort;
 import exception_stack_trace;
-
+#else /* defined(BITONICSORT_MODULES) */
+#include "sort/bitonic/sort.hpp"
+#endif /* defined(BITONICSORT_MODULES) */
 
 
 int main()
@@ -53,24 +52,33 @@ catch (cl::BuildError &err)
         std::cerr << e.second;
     std::cerr << "-- End log --\n";
 
+#if defined(BITONICSORT_MODULES)
     debug::stacktrace::show_exception_stacktrace();
+#endif /* defined(BITONICSORT_MODULES) */
+
     return 1;
 }
 catch (cl::Error &err)
 {
     std::cerr << "OCL ERROR: " << err.err() << " : " << err.what() << std::endl;
+#if defined(BITONICSORT_MODULES)
     debug::stacktrace::show_exception_stacktrace();
+#endif /* defined(BITONICSORT_MODULES) */
     return 1;
 }
 catch (std::runtime_error &err)
 {
     std::cerr << "RUNTIME ERROR: " << err.what() << std::endl;
+#if defined(BITONICSORT_MODULES)
     debug::stacktrace::show_exception_stacktrace();
+#endif /* defined(BITONICSORT_MODULES) */
     return 1;
 }
 catch (...)
 {
     std::cerr << "UNKNOWN ERROR\n";
+#if defined(BITONICSORT_MODULES)
     debug::stacktrace::show_exception_stacktrace();
+#endif /* defined(BITONICSORT_MODULES) */
     return 1;
 }

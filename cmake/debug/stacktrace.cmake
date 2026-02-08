@@ -1,3 +1,5 @@
+if (BITONICSORT_MODULES)
+
 set(STACKTRACE_LIB stacktrace)
 
 set(STACKTRACE_SRC_DIR ${DEBUG_DIR}/stacktrace)
@@ -71,3 +73,5 @@ function(add_target_stacktrace_dump_lib target)
     # )
 endfunction(add_target_stacktrace_dump_lib)
 
+
+endif(BITONICSORT_MODULES)

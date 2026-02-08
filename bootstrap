@@ -41,6 +41,7 @@ INSTALLATION_PREFIX="${build_dir}"
 CXX_COMPILER=clang++
 BUILD_SYSTEM=Ninja
 BUILD_TYPE=Release
+CXX_20_SUPPORT=OFF
 CMAKE_EXPERIMENTAL_CXX_IMPORT_STD=OFF
 INSTALL=OFF
 CMAKE_INSTALL_PREFIX=OFF
@@ -50,6 +51,7 @@ BENCHMARK=OFF
 BUILD_TESTS=OFF
 SANITIZE=OFF
 INSTALL_DEPENDENCIES=OFF
+
 
 # help message function
 function usage()
@@ -69,6 +71,13 @@ Options:
                         Often users use values, like:
                             /usr/local
                             ~/.local
+  --cxx-20-support
+                        This library has 2 formats:
+                            header-only-lib
+                            cppm-modules-lib
+
+                        If you want, to use modules, use this option,
+                        without this option C++ standart will be c++98.
 
   --cmake-experimental-cxx-import-std
                         If your compiler supported 23 standart of C++,
@@ -119,7 +128,7 @@ function parse_options
     custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Parse script options..."
 
     local SHORT_OPTS="p:c:g:tdsh"
-    local LONG_OPTS="build-inplace,prefix:,compiler:,generator:,build-tests,benchmark,debug,sanitize,help,cmake-experimental-cxx-import-std:,cmake-export-compile-commands,install-dependencies"
+    local LONG_OPTS="build-inplace,prefix:,compiler:,generator:,build-tests,benchmark,debug,sanitize,help,cxx-20-support,cmake-experimental-cxx-import-std:,cmake-export-compile-commands,install-dependencies"
 
     TEMP=$(getopt -o "$SHORT_OPTS" \
                   -l "$LONG_OPTS" \
@@ -149,6 +158,11 @@ function parse_options
 
             --build-inplace)
                 BUILD_INPLACE=ON
+                shift
+                ;;
+
+            --cxx-20-support)
+                CXX_20_SUPPORT=ON
                 shift
                 ;;
 
@@ -265,7 +279,7 @@ function check_this_script_dependencies
 
     check_that_exists cmake || exit 1
     check_that_exists rm || exit 1
-    check_that_exists conan || exit 1
+    # check_that_exists conan || exit 1
 
     custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "All script dependencies was found."
     skip_line_in_console
@@ -287,6 +301,14 @@ function run_cmake()
 -DCMAKE_CXX_COMPILER=\"${CXX_COMPILER}\" \
 -DCMAKE_BUILD_TYPE=${BUILD_TYPE}"
 
+    if [ ${CMAKE_EXPERIMENTAL_CXX_IMPORT_STD} != "OFF" ]; then
+        cmake_command="${cmake_command} -DCMAKE_CXX_STANDARD=23 -DCMAKE_CXX_MODULE_STD=ON -DCMAKE_EXPERIMENTAL_CXX_IMPORT_STD=${CMAKE_EXPERIMENTAL_CXX_IMPORT_STD}"
+    elif [ ${CXX_20_SUPPORT} == "ON" ]; then
+        cmake_command="${cmake_command} -DCMAKE_CXX_STANDARD=20"
+    else
+        cmake_command="${cmake_command} -DCMAKE_CXX_STANDARD=11"
+    fi
+
     if [ ${SANITIZE} == "ON" ]; then
         cmake_command="${cmake_command} -DSANITIZE=ON"
     fi
@@ -303,9 +325,6 @@ function run_cmake()
         cmake_command="${cmake_command} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
     fi
 
-    if [ ${CMAKE_EXPERIMENTAL_CXX_IMPORT_STD} != "OFF" ]; then
-        cmake_command="${cmake_command} -DCMAKE_EXPERIMENTAL_CXX_IMPORT_STD=${CMAKE_EXPERIMENTAL_CXX_IMPORT_STD}"
-    fi
 
     if [ ${INSTALL} == "ON" ]; then
         cmake_command="${cmake_command} -DINSTALL=ON -DCMAKE_INSTALL_PREFIX=\"${CMAKE_INSTALL_PREFIX}\""
@@ -337,10 +356,26 @@ function finally_bootstrap_message
     if [ "${BUILD_INPLACE}" == "ON" ]; then
         custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Building project completed successfully."
         skip_line_in_console
-    
-    else
+        return
+    fi
+
+    if [ "${CXX_20_SUPPORT}" == "ON" ]; then
         custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Now run ninja (or make, your build system anyway): "
         custom_echo "${CONSOLE_COLOR_WHITE}" "" "ninja && ninja install"
+        skip_line_in_console
+        return
+    fi
+
+    if [ "${BUILD_TESTS}" == "ON" ]; then
+        custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Tests was successfully generated. Run ctests, to check it:"
+        custom_echo "${CONSOLE_COLOR_WHITE}" "" "ctest --test-dir build"
+        skip_line_in_console
+    fi
+
+    if [ "${BENCHMARK}" == "ON" ]; then
+        custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Benchmark was successfully generated. Run this, to check it:"
+        custom_echo "${CONSOLE_COLOR_WHITE}" "" "build/run-benchmark"
+        skip_line_in_console
     fi
 }
 
@@ -348,6 +383,7 @@ check_this_script_dependencies
 clean_build_directory "${build_dir}"
 parse_options "$@"
 if [ "${INSTALL_DEPENDENCIES}" == "ON" ]; then
+echo "Not working now :)"
 install_dependencies
 fi
 run_cmake

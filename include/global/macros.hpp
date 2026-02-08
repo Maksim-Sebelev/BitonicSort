@@ -126,7 +126,6 @@
 #define ON_STACKTRACE(...)
 #endif /* defined(SHOW_EXCEPTION_STACKTRACE) */
 
-
 //---------------------------------------------------------------------------------------------------------------
 
 #define STRINGIFY(X) #X
