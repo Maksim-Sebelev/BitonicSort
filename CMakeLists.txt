@@ -43,6 +43,10 @@ endif()
 if (BITONICSORT_MODULES)
 
 # ==================================================================================
+
+  set(SORT_SRC_DIR ${SRC_DIR}/sort)
+
+# ==================================================================================
 # add math library
 
   set(MATH_LIB math)
@@ -75,10 +79,7 @@ if (BITONICSORT_MODULES)
 # ==================================================================================
 # add bitonic sort library
 
-  set(SORT_SRC_DIR ${SRC_DIR}/sort)
-
   set(BITONICSORT_LIB bitonic)
-  set(BITONICSORT_LIB ${BITONICSORT_LIB})
   set(BITONICSORT_SRC_DIR ${SORT_SRC_DIR}/bitonic)
 
   set(BITONICSORT_SRCS
@@ -98,7 +99,7 @@ if (BITONICSORT_MODULES)
   )
 
   target_link_libraries(${BITONICSORT_LIB}
-    PUBLIC
+    PRIVATE
       OpenCL::OpenCL
       ${MATH_LIB}
   )

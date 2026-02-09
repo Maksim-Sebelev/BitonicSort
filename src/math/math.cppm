@@ -7,7 +7,6 @@ module;
 //----------------------------------------------------------------------------------------------------------------------------
 
 #if not defined(BITONICSORT_CXX_23_SUPPORT)
-#include <concepts>
 #include <type_traits>
 #endif /* not defined(BITONICSORT_CXX_23_SUPPORT) */
 

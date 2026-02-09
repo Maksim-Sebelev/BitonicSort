@@ -24,7 +24,7 @@ target_include_directories(${STACKTRACE_LIB}
     ${INC_DIR}
 )
 
-target_compile_options(${STACKTRACE_LIB}
+target_link_options(${STACKTRACE_LIB}
   PUBLIC
     -g
     -rdynamic

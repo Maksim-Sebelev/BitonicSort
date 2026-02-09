@@ -4,49 +4,101 @@ set -euo pipefail
 
 bitonicsort="@PROJECT_BINARY_DIR@/@BITONICSORST_TIME_MEASURE@"
 stdsort="@PROJECT_BINARY_DIR@/@STDSORT_TIME_MEASURE@"
+finallysort="@PROJECT_BINARY_DIR@/@SORT_TIME_MEASURE@"
 
 benchmark_dat_dir="@BENCHMARK_DAT_DIR@"
+
+function run_benchmark
+{
+    local name="$1"
+    local exe="$2"
+    local dir="$3"
+
+    if ! [ -d "$dir" ]; then
+        echo "No such directory: '$dir'"
+        return
+    fi
+
+    echo "$name:"
+
+    for d in "$dir"/*; do
+        "$exe" < "$d"
+    done
+
+    echo
+}
+
+function run_comparing_benchmark
+{
+    dir="$1"
+
+    run_benchmark "Bitonic" "$bitonicsort" "$dir"
+    run_benchmark "std::sort" "$stdsort" "$dir"
+
+    echo
+}
 
 function run_benchmar_with_n_elems
 {
     local n="$1"
 
-    dir="$benchmark_dat_dir/$n-elem"
-
-    if ! [ -d "$dir" ]; then
-        echo "No such directory: '$dir'"
-        echo "Skip benchmark"
-        return
-    fi
+    dir="$benchmark_dat_dir/random/$n-elem"
 
     echo "Elements: $n"
+    run_comparing_benchmark "$dir"
+}
 
-    echo "Bitonic:"
+function run_benchmark_with_sorted_arrays
+{
+    dir="$benchmark_dat_dir/sorted-arrays"
 
-    for d in "$dir"/*; do
-        "$bitonicsort" < $d
-    done
+    echo "Sorted arrays:"
+
+    run_comparing_benchmark "$dir"
 
     echo
-    echo "std::sort:"
+}
 
-    for d in "$dir"/*; do
-        "$stdsort" < $d
-    done 
+function run_benchmark_with_back_sorted_arrays
+{
+    dir="$benchmark_dat_dir/back-sorted-arrays"
+
+    echo "Back sorted arrays:"
+    run_comparing_benchmark "$dir"
+
+    echo
+}
+
+
+function run_all_random_init_arrays_bencmark
+{
+    echo "Random init arrays tests:"
+    echo
+    run_benchmar_with_n_elems 10
+    run_benchmar_with_n_elems 100
+    run_benchmar_with_n_elems 1000
+    run_benchmar_with_n_elems 10000
+    run_benchmar_with_n_elems 100000
+    run_benchmar_with_n_elems 200000
+    run_benchmar_with_n_elems 300000
+    run_benchmar_with_n_elems 400000
+    run_benchmar_with_n_elems 500000
+    run_benchmar_with_n_elems 600000
+    run_benchmar_with_n_elems 700000
+    run_benchmar_with_n_elems 800000
+    run_benchmar_with_n_elems 900000
+    run_benchmar_with_n_elems 1000000
+    run_benchmar_with_n_elems 10000000
+    run_benchmar_with_n_elems 100000000
 
     echo
     echo
 }
 
-echo "Comparing bitonic and std:: sort fuctions."
+echo "Comparing sort::bitonic::sort and std::sort functions."
 echo
 echo
 
-run_benchmar_with_n_elems 10
-run_benchmar_with_n_elems 100
-run_benchmar_with_n_elems 1000
-run_benchmar_with_n_elems 10000
-run_benchmar_with_n_elems 100000
-run_benchmar_with_n_elems 1000000
-run_benchmar_with_n_elems 10000000
-run_benchmar_with_n_elems 100000000
+run_all_random_init_arrays_bencmark
+run_benchmark_with_sorted_arrays
+run_benchmark_with_back_sorted_arrays

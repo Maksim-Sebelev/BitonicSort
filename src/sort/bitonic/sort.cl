@@ -2,7 +2,6 @@
 #define TYPE int
 #endif /* TYPE */
 
-
 __kernel void bitonic_sort_gpu(__global TYPE* data, uint size)
 {
     uint it1 = get_global_id(0);

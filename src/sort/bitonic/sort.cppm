@@ -120,14 +120,11 @@ class OpenCLSorting
     }
 
     template <BitonicSortSupportedType T>
-    static constexpr std::string get_type_name()
-    {
-        if constexpr (std::same_as<T, int>) return "int";
-        else if constexpr (std::same_as<T, float>) return "float";
-        else if constexpr (std::same_as<T, double>) return "double";
+    static constexpr std::string get_type_name() { return "unknown"; }
 
-        return "unknown";
-    }
+    template <> constexpr std::string get_type_name<int>() { return STRINGIFY(int); }
+    template <> constexpr std::string get_type_name<float>() { return STRINGIFY(float); }
+    template <> constexpr std::string get_type_name<double>() { return STRINGIFY(double); }
 
     using sort_t = cl::KernelFunctor<cl::Buffer, cl_uint>;
 
@@ -139,12 +136,13 @@ class OpenCLSorting
     sort_t get_gpu_part_of_sort_function();
 
     enum { BUILD_KERNEL_IMMEDIATELY = true };
+
   public:
 
     OpenCLSorting() :
     platform_(select_platform()),
     context_(get_gpu_context(platform_())),
-    queue_(context_, cl::QueueProperties::Profiling | cl::QueueProperties::OutOfOrder), 
+    queue_(context_, cl::QueueProperties::Profiling | cl::QueueProperties::OutOfOrder),
     kernel_(readFile(BITONICSORT_OPENCL_KERNEL))
     {}
 

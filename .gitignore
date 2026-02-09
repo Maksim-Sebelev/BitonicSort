@@ -11,6 +11,33 @@ tmp/
 cmake/install
 
 # too big
-tests/benchmark/dat/1000000-elem/
-tests/benchmark/dat/10000000-elem/
-tests/benchmark/dat/100000000-elem/
+tests/benchmark/dat/random/100000-elem/
+tests/benchmark/dat/random/200000-elem/
+tests/benchmark/dat/random/300000-elem/
+tests/benchmark/dat/random/400000-elem/
+tests/benchmark/dat/random/600000-elem/
+tests/benchmark/dat/random/700000-elem/
+tests/benchmark/dat/random/800000-elem/
+tests/benchmark/dat/random/900000-elem/
+tests/benchmark/dat/random/10000000-elem/
+tests/benchmark/dat/random/100000000-elem/
+
+tests/benchmark/dat/sorted-arrays/2000000-elem.dat
+tests/benchmark/dat/sorted-arrays/3000000-elem.dat
+tests/benchmark/dat/sorted-arrays/4000000-elem.dat
+tests/benchmark/dat/sorted-arrays/5000000-elem.dat
+tests/benchmark/dat/sorted-arrays/6000000-elem.dat
+tests/benchmark/dat/sorted-arrays/7000000-elem.dat
+tests/benchmark/dat/sorted-arrays/8000000-elem.dat
+tests/benchmark/dat/sorted-arrays/9000000-elem.dat
+tests/benchmark/dat/sorted-arrays/1000000-elem.dat
+
+tests/benchmark/dat/back-sorted-arrays/2000000-elem.dat
+tests/benchmark/dat/back-sorted-arrays/3000000-elem.dat
+tests/benchmark/dat/back-sorted-arrays/4000000-elem.dat
+tests/benchmark/dat/back-sorted-arrays/5000000-elem.dat
+tests/benchmark/dat/back-sorted-arrays/6000000-elem.dat
+tests/benchmark/dat/back-sorted-arrays/7000000-elem.dat
+tests/benchmark/dat/back-sorted-arrays/8000000-elem.dat
+tests/benchmark/dat/back-sorted-arrays/9000000-elem.dat
+tests/benchmark/dat/back-sorted-arrays/1000000-elem.dat

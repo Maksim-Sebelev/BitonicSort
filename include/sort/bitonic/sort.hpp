@@ -61,7 +61,7 @@ class OpenCLSorting
     cl::CommandQueue queue_;
     std::string kernel_;
 
-    static cl::Platform select_platform()
+    inline static cl::Platform select_platform()
     {
         cl::vector<cl::Platform> platforms;
         cl::Platform::get(&platforms);
@@ -75,7 +75,7 @@ class OpenCLSorting
         throw std::runtime_error("No platform selected");
     }
 
-    static cl::Context get_gpu_context(cl_platform_id PId)
+    inline static cl::Context get_gpu_context(cl_platform_id PId)
     {
         cl_context_properties properties[] =
         {
@@ -86,7 +86,7 @@ class OpenCLSorting
         return cl::Context(CL_DEVICE_TYPE_GPU, properties);
     }
 
-    static std::string readFile(const char *Path)
+    inline static std::string readFile(const char *Path)
     {
         std::string Code;
         std::ifstream ShaderFile;
@@ -99,19 +99,18 @@ class OpenCLSorting
         return Code;
     }
 
-    template <typename T>
-    static std::string get_type_name() { return "unknown"; }
+    template <typename  T>
+    inline static std::string get_type_name() { return "unknown"; }
 
-    template<> std::string get_type_name<int>() { return "int"; }
-    template<> std::string get_type_name<float>() { return "float"; }
-    template<> std::string get_type_name<double>() { return "double"; }
-    template<> std::string get_type_name<unsigned int>() { return "unsigned int"; }
+    // not a  constexpr, because c++11, and we need std::string as return type
+    template <> std::string get_type_name<int>() { return STRINGIFY(int); }
+    template <> std::string get_type_name<float>() { return STRINGIFY(float); }
+    template <> std::string get_type_name<double>() { return STRINGIFY(double); }
 
-    // using sort_t = cl::KernelFunctor<cl::Buffer, cl_uint, cl_uint, cl_uint>;
     using sort_t = cl::KernelFunctor<cl::Buffer, cl_uint>;
 
     template <typename It>
-    void add_type_define_in_kernel();
+    inline void add_type_define_in_kernel();
     template <typename It>
     cl::Buffer copy_input_on_queue(It begin, It end, size_t& cl_buf_size);
     
@@ -128,13 +127,13 @@ class OpenCLSorting
     {}
 
     template <typename It>
-    void sort(It begin, It end);
+    inline void sort(It begin, It end);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------
 
 template <typename It>
-void OpenCLSorting::add_type_define_in_kernel()
+inline void OpenCLSorting::add_type_define_in_kernel()
 {
     using type = typename It::value_type;
 
@@ -144,7 +143,7 @@ void OpenCLSorting::add_type_define_in_kernel()
 //----------------------------------------------------------------------------------------------------------------------------
 
 template <typename It>
-cl::Buffer OpenCLSorting::copy_input_on_queue(It begin, It end, size_t& cl_buf_size)
+inline cl::Buffer OpenCLSorting::copy_input_on_queue(It begin, It end, size_t& cl_buf_size)
 {
     using type = typename It::value_type;
 
@@ -167,7 +166,7 @@ cl::Buffer OpenCLSorting::copy_input_on_queue(It begin, It end, size_t& cl_buf_s
 
 //-----------------------------------------------------------------------------
 
-OpenCLSorting::sort_t OpenCLSorting::get_gpu_part_of_sort_function()
+inline OpenCLSorting::sort_t OpenCLSorting::get_gpu_part_of_sort_function()
 {
     cl::Program program(context_, kernel_, BUILD_KERNEL_IMMEDIATELY);
     return sort_t{program, "bitonic_sort_gpu"};
@@ -176,7 +175,7 @@ OpenCLSorting::sort_t OpenCLSorting::get_gpu_part_of_sort_function()
 //-----------------------------------------------------------------------------
 
 template <typename It>
-void OpenCLSorting::sort(It begin, It end)
+inline void OpenCLSorting::sort(It begin, It end)
 {
     add_type_define_in_kernel<It>();
 

@@ -1,15 +1,16 @@
+/*
+dont using import std, because include opencl
+(no module global fragment in .cpp file)
+*/
 #include <iostream>
 #include <vector>
 #include <stdexcept>
-
 #include <algorithm>
-
-#include <global/macros.hpp>
 
 #ifndef CL_HPP_TARGET_OPENCL_VERSION
 #define CL_HPP_MINIMUM_OPENCL_VERSION 120
 #define CL_HPP_TARGET_OPENCL_VERSION 120
-#endif
+#endif /* CL_HPP_TARGET_OPENCL_VERSION */
 
 #define CL_HPP_CL_1_2_DEFAULT_BUILD
 #define CL_HPP_ENABLE_EXCEPTIONS
@@ -24,7 +25,6 @@ import exception_stack_trace;
 #include "sort/bitonic/sort.hpp"
 #endif /* defined(BITONICSORT_MODULES) */
 
-
 int main()
 try
 {
@@ -35,8 +35,6 @@ try
         v.push_back(vi);
 
     sort::bitonic::sort(v.begin(), v.end());
-
-    std::sort(v.begin(), v.end());
 
     for (auto vii: v)
         std::cout << vii << " ";
