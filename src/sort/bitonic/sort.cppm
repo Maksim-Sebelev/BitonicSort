@@ -20,8 +20,6 @@ module;
 
 #if not defined(BITONICSORT_OPENCL_KERNEL)
 #error "Please defined 'BITONICSORT_OPENCL_KERNEL' for this module. witout this macro we cannot find kernnel, because didnt know absolute way."
-#else /* not defined(BITONICSORT_OPENCL_KERNEL) */
-#define S_BITONICSORT_OPENCL_KERNEL BITONICSORT_OPENCL_KERNEL
 #endif /* not defined(BITONICSORT_OPENCL_KERNEL) */
 
 #ifndef CL_HPP_TARGET_OPENCL_VERSION
@@ -131,7 +129,6 @@ class OpenCLSorting
         return "unknown";
     }
 
-    // using sort_t = cl::KernelFunctor<cl::Buffer, cl_uint, cl_uint, cl_uint>;
     using sort_t = cl::KernelFunctor<cl::Buffer, cl_uint>;
 
     template <BitonicSortIteratorConcept It>
@@ -148,7 +145,7 @@ class OpenCLSorting
     platform_(select_platform()),
     context_(get_gpu_context(platform_())),
     queue_(context_, cl::QueueProperties::Profiling | cl::QueueProperties::OutOfOrder), 
-    kernel_(readFile(S_BITONICSORT_OPENCL_KERNEL))
+    kernel_(readFile(BITONICSORT_OPENCL_KERNEL))
     {}
 
     template <BitonicSortIteratorConcept It>
@@ -220,7 +217,6 @@ void OpenCLSorting::sort(It begin, It end)
     sort_t gpu_part_of_sort = get_gpu_part_of_sort_function();
 
 	cl::NDRange GlobalRange(cl_buf_size);
-    cl::NDRange LocalRange(32);
     cl::EnqueueArgs Args(queue_, GlobalRange);
 
     cl::Event Evt = gpu_part_of_sort(Args, cl_data, cl_buf_size);

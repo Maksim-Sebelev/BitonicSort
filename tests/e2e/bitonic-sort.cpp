@@ -2,6 +2,8 @@
 #include <vector>
 #include <stdexcept>
 
+#include <algorithm>
+
 #include <global/macros.hpp>
 
 #ifndef CL_HPP_TARGET_OPENCL_VERSION
@@ -33,6 +35,8 @@ try
         v.push_back(vi);
 
     sort::bitonic::sort(v.begin(), v.end());
+
+    std::sort(v.begin(), v.end());
 
     for (auto vii: v)
         std::cout << vii << " ";

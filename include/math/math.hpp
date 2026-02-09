@@ -4,7 +4,7 @@ namespace math
 {
 
 template <typename T>
-T min_power_of_2_greater_or_equal_than(T x)
+inline T min_power_of_2_greater_or_equal_than(T x)
 {
     if (x <= 0) return 1;
 

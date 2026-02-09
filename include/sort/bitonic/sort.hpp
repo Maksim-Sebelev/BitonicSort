@@ -44,7 +44,7 @@ namespace bitonic
 
 //----------------------------------------------------------------------------------------------------------------------------
 
-template <typename It> void sort(It begin, It end);
+template <typename It> inline void sort(It begin, It end);
 
 //----------------------------------------------------------------------------------------------------------------------------
 
@@ -208,7 +208,7 @@ ON_TIME(
 //-----------------------------------------------------------------------------
 
 template <typename It>
-void sort(It begin, It end)
+inline void sort(It begin, It end)
 {
 	__detail::OpenCLSorting{}.sort(begin, end);
 }

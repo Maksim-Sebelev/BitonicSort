@@ -17,10 +17,9 @@ __kernel void bitonic_sort_gpu(__global TYPE* data, uint size)
             it2 = it1 ^ compare_distance_bit_mask;
             if (it1 < it2)
             {
-
                 TYPE a = data[it1];
                 TYPE b = data[it2];
-                
+
                 if ((!(it1 & block_size)) == (a > b))
                 {
                     data[it1] = b;
