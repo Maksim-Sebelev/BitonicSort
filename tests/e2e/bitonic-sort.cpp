@@ -7,6 +7,13 @@ dont using import std, because include opencl
 #include <stdexcept>
 #include <algorithm>
 
+
+#if not defined(SHOW_EXCEPTION_STACKTRACE)
+#define SHOW_EXCEPTION_STACKTRACE
+#endif /* not defined(SHOW_EXCEPTION_STACKTRACE) */
+
+#include "global/macros.hpp"
+
 #ifndef CL_HPP_TARGET_OPENCL_VERSION
 #define CL_HPP_MINIMUM_OPENCL_VERSION 120
 #define CL_HPP_TARGET_OPENCL_VERSION 120
@@ -34,14 +41,14 @@ try
     while (std::cin >> vi)
         v.push_back(vi);
 
-    sort::bitonic::sort(v.begin(), v.end());
+    sort::bitonic::sort_local(v.begin(), v.end());
 
     for (auto vii: v)
         std::cout << vii << " ";
 
     std::cout << std::endl;
 
-    return 0;
+    return EXIT_SUCCESS;
 }
 catch (cl::BuildError &err)
 {
@@ -52,33 +59,24 @@ catch (cl::BuildError &err)
         std::cerr << e.second;
     std::cerr << "-- End log --\n";
 
-#if defined(BITONICSORT_MODULES)
     debug::stacktrace::show_exception_stacktrace();
-#endif /* defined(BITONICSORT_MODULES) */
-
-    return 1;
+    return EXIT_FAILURE;
 }
 catch (cl::Error &err)
 {
     std::cerr << "OCL ERROR: " << err.err() << " : " << err.what() << std::endl;
-#if defined(BITONICSORT_MODULES)
     debug::stacktrace::show_exception_stacktrace();
-#endif /* defined(BITONICSORT_MODULES) */
-    return 1;
+    return EXIT_FAILURE;
 }
 catch (std::runtime_error &err)
 {
     std::cerr << "RUNTIME ERROR: " << err.what() << std::endl;
-#if defined(BITONICSORT_MODULES)
     debug::stacktrace::show_exception_stacktrace();
-#endif /* defined(BITONICSORT_MODULES) */
-    return 1;
+    return EXIT_FAILURE;
 }
 catch (...)
 {
     std::cerr << "UNKNOWN ERROR\n";
-#if defined(BITONICSORT_MODULES)
     debug::stacktrace::show_exception_stacktrace();
-#endif /* defined(BITONICSORT_MODULES) */
-    return 1;
+    return EXIT_FAILURE;
 }

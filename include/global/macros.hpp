@@ -134,7 +134,7 @@
 #if defined(BITONICSORT_TIME_MEASURE)
 #define ON_TIME(...) __VA_ARGS__
 #else /* defined(TIME) */
-#define ON_TIME(...) 
+#define ON_TIME(...)
 #endif /* defined(TIME) */
 
 //---------------------------------------------------------------------------------------------------------------

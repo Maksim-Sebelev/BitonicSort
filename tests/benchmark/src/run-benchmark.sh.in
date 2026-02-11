@@ -1,10 +1,10 @@
 #!/bin/bash
 
-set -euo pipefail
+set -uo pipefail
 
 bitonicsort="@PROJECT_BINARY_DIR@/@BITONICSORST_TIME_MEASURE@"
 stdsort="@PROJECT_BINARY_DIR@/@STDSORT_TIME_MEASURE@"
-finallysort="@PROJECT_BINARY_DIR@/@SORT_TIME_MEASURE@"
+localsort="@PROJECT_BINARY_DIR@/@BITONICSORT_LOCAL_TIME_MEASURE@"
 
 benchmark_dat_dir="@BENCHMARK_DAT_DIR@"
 
@@ -22,7 +22,10 @@ function run_benchmark
     echo "$name:"
 
     for d in "$dir"/*; do
-        "$exe" < "$d"
+        "$exe" < "$d" 2>/dev/null
+        if [ $? -ne 0 ]; then
+            echo -n "fail "
+        fi
     done
 
     echo
@@ -30,8 +33,10 @@ function run_benchmark
 
 function run_comparing_benchmark
 {
-    dir="$1"
+    local dir="$1"
 
+    # TODO: remove local benchmark
+    run_benchmark "Local" "$localsort" "$dir"
     run_benchmark "Bitonic" "$bitonicsort" "$dir"
     run_benchmark "std::sort" "$stdsort" "$dir"
 
@@ -74,22 +79,22 @@ function run_all_random_init_arrays_bencmark
 {
     echo "Random init arrays tests:"
     echo
-    run_benchmar_with_n_elems 10
-    run_benchmar_with_n_elems 100
-    run_benchmar_with_n_elems 1000
-    run_benchmar_with_n_elems 10000
-    run_benchmar_with_n_elems 100000
-    run_benchmar_with_n_elems 200000
-    run_benchmar_with_n_elems 300000
-    run_benchmar_with_n_elems 400000
-    run_benchmar_with_n_elems 500000
-    run_benchmar_with_n_elems 600000
-    run_benchmar_with_n_elems 700000
-    run_benchmar_with_n_elems 800000
-    run_benchmar_with_n_elems 900000
+    # run_benchmar_with_n_elems 10
+    # run_benchmar_with_n_elems 100
+    # run_benchmar_with_n_elems 1000
+    # run_benchmar_with_n_elems 10000
+    # run_benchmar_with_n_elems 100000
+    # run_benchmar_with_n_elems 200000
+    # run_benchmar_with_n_elems 300000
+    # run_benchmar_with_n_elems 400000
+    # run_benchmar_with_n_elems 500000
+    # run_benchmar_with_n_elems 600000
+    # run_benchmar_with_n_elems 700000
+    # run_benchmar_with_n_elems 800000
+    # run_benchmar_with_n_elems 900000
     run_benchmar_with_n_elems 1000000
     run_benchmar_with_n_elems 10000000
-    run_benchmar_with_n_elems 100000000
+    # run_benchmar_with_n_elems 100000000
 
     echo
     echo

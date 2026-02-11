@@ -75,7 +75,7 @@ class OpenCLSorting
         throw std::runtime_error("No platform selected");
     }
 
-    inline static cl::Context get_gpu_context(cl_platform_id PId)
+    inline static cl::Context  get_gpu_context(cl_platform_id PId)
     {
         cl_context_properties properties[] =
         {
@@ -148,9 +148,10 @@ inline cl::Buffer OpenCLSorting::copy_input_on_queue(It begin, It end, size_t& c
     using type = typename It::value_type;
 
     const size_t size = std::distance(begin, end);
-    cl_buf_size = math::min_power_of_2_greater_or_equal_than(size);
+    cl_buf_size = math::get_min_natural_power_of_2_greater_or_equal_than(size);
 
-    cl::Buffer cl_data(context_, CL_MEM_READ_WRITE, cl_buf_size * sizeof(type));
+                                                /*  FIXME  */
+    cl::Buffer cl_data(context_, CL_MEM_READ_ONLY, cl_buf_size * sizeof(type));
     cl::copy(begin, end, cl_data);
 
     const size_t diff_between_real_size_and_cl_buf_size = cl_buf_size - size;

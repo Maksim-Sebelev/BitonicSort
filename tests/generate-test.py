@@ -13,7 +13,7 @@ else:
     n = randint(min_size, max_size)
 
 for i in range(0, n + 1):
-    # print(i, end = ' ')
-    print(randint(int_min, int_max), end = ' ')
+    print(n - i, end = ' ')
+    # print(randint(int_min, int_max), end = ' ')
 
 

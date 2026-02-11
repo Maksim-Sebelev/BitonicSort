@@ -1,6 +1,3 @@
-# for debug exceptions
-include(${CMAKE_SETTINGS_DIR}/debug/stacktrace.cmake)
-
 # =================================================================================================
 # add ctest
 

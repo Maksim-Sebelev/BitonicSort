@@ -2,6 +2,8 @@
 #error "Define macro 'SORT_FUNCTION' before include this file"
 #endif /* not defined(SORT_FUNCTION) */
 
+#include "global/macros.hpp"
+
 #if defined(BITONICSORT_CXX_23_SUPPORT)
 import std;
 #else /* defined(BITONICSORT_CXX_23_SUPPORT) */
@@ -27,5 +29,5 @@ int main()
     long Dur = std::chrono::duration_cast<std::chrono::milliseconds>(TimeFin - TimeStart).count();
     std::cout << Dur << " ";
 
-    return 0;
+    return EXIT_SUCCESS;
 }

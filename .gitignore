@@ -6,6 +6,7 @@ imgs/
 logs/
 .cache
 tmp/
+log/
 
 # not ready now
 cmake/install

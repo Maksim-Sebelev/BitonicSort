@@ -30,12 +30,13 @@ endfunction(create_benchmark target)
 
 set(BITONICSORST_TIME_MEASURE bitonic-benchmark)
 set(STDSORT_TIME_MEASURE stdsort-benchmark)
-set(SORT_TIME_MEASURE sort-benchmark)
+set(BITONICSORT_LOCAL_TIME_MEASURE bitonic-sort-local-benchmark)
 
 # =================================================================================================
 
 if (BITONICSORT_MODULES)
   create_benchmark("${BITONICSORST_TIME_MEASURE}" "bitonicsort-time-measure.cpp" "${BITONICSORT_LIB}" "")
+  create_benchmark("${BITONICSORT_LOCAL_TIME_MEASURE}" "bitonicsort-local-time-measure.cpp" "${BITONICSORT_LIB}" "")
 else()
   create_benchmark("${BITONICSORST_TIME_MEASURE}" "bitonicsort-time-measure.cpp" "OpenCL::OpenCL" "")
 endif()

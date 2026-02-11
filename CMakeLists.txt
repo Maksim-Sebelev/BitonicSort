@@ -30,13 +30,17 @@ if (NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 11)
 endif()
 
-if (CMAKE_CXX_STANDARD STREQUAL 20 OR CMAKE_CXX_STANDARD STREQUAL 23)
+if (CMAKE_CXX_STANDARD GREATER_EQUAL 20)
   set(BITONICSORT_MODULES ON)
   set(BITONICSORT_HEADER_ONLY OFF)
 else()
   set(BITONICSORT_MODULES OFF)
   set(BITONICSORT_HEADER_ONLY ON)
 endif()
+
+# ==================================================================================
+
+include(${CMAKE_SETTINGS_DIR}/debug/stacktrace.cmake)
 
 # ==================================================================================
 
@@ -74,7 +78,10 @@ if (BITONICSORT_MODULES)
   target_compile_definitions(${MATH_LIB}
     PRIVATE
       $<$<BOOL:${CMAKE_CXX_MODULE_STD}>:BITONICSORT_CXX_23_SUPPORT>
+
   )
+
+  add_target_stacktrace_dump_lib_on_debug(${MATH_LIB})
 
 # ==================================================================================
 # add bitonic sort library
@@ -115,6 +122,7 @@ if (BITONICSORT_MODULES)
       BITONICSORT_OPENCL_KERNEL="${BITONICSORT_OPENCL_KERNEL}"
   )
 
+  add_target_stacktrace_dump_lib_on_debug(${BITONICSORT_LIB})
 # ==================================================================================
 
   set(BITONICSORT_NAMESPACE sort)
