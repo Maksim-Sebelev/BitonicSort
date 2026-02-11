@@ -80,6 +80,7 @@ class OpenCLSorting
     cl::Context context_;
     cl::CommandQueue queue_;
     std::string kernel_;
+    size_t local_size_;
 
     static cl::Platform select_platform()
     {
@@ -126,14 +127,17 @@ class OpenCLSorting
     template <> constexpr std::string get_type_name<float>() { return STRINGIFY(float); }
     template <> constexpr std::string get_type_name<double>() { return STRINGIFY(double); }
 
-    using sort_t = cl::KernelFunctor<cl::Buffer, cl_uint>;
+    using sort_small_blocks_t = cl::KernelFunctor<cl::Buffer>;
+    using sort_big_blocks_t = cl::KernelFunctor<cl::Buffer, cl_uint>;
+
+    sort_small_blocks_t get_sorting_small_blocks();
+    sort_big_blocks_t get_sorting_big_blocks();
 
     template <BitonicSortIteratorConcept It>
     void add_type_define_in_kernel();
     template <BitonicSortIteratorConcept It>
     cl::Buffer copy_input_on_queue(It begin, It end, size_t& cl_buf_size);
     
-    sort_t get_gpu_part_of_sort_function();
 
     enum { BUILD_KERNEL_IMMEDIATELY = true };
 
@@ -143,7 +147,8 @@ class OpenCLSorting
     platform_(select_platform()),
     context_(get_gpu_context(platform_())),
     queue_(context_, cl::QueueProperties::Profiling | cl::QueueProperties::OutOfOrder),
-    kernel_(readFile(BITONICSORT_OPENCL_KERNEL))
+    kernel_(readFile(BITONICSORT_OPENCL_KERNEL)),
+    local_size_(256)
     {}
 
     template <BitonicSortIteratorConcept It>
@@ -165,10 +170,7 @@ void OpenCLSorting::add_type_define_in_kernel()
 {
     using type = typename It::value_type;
 
-    if constexpr ( std::same_as<type, int>)
-        return;
-
-    kernel_ = "#define TYPE " + get_type_name<type>() + "\n" + kernel_;
+    kernel_ = "#define TYPE " + get_type_name<type>() + "\n#define LOCAL_SIZE " + std::to_string(local_size_) + "\n" + kernel_;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------
@@ -179,7 +181,7 @@ cl::Buffer OpenCLSorting::copy_input_on_queue(It begin, It end, size_t& cl_buf_s
     using type = typename It::value_type;
 
     const size_t size = std::distance(begin, end);
-    cl_buf_size = math::min_power_of_2_greater_or_equal_than(size);
+    cl_buf_size = std::max(math::min_power_of_2_greater_or_equal_than(size), local_size_);
 
     cl::Buffer cl_data(context_, CL_MEM_READ_WRITE, cl_buf_size * sizeof(type));
     cl::copy(begin, end, cl_data);
@@ -197,10 +199,18 @@ cl::Buffer OpenCLSorting::copy_input_on_queue(It begin, It end, size_t& cl_buf_s
 
 //-----------------------------------------------------------------------------
 
-OpenCLSorting::sort_t OpenCLSorting::get_gpu_part_of_sort_function()
+OpenCLSorting::sort_small_blocks_t OpenCLSorting::get_sorting_small_blocks()
 {
     cl::Program program(context_, kernel_, BUILD_KERNEL_IMMEDIATELY);
-    return sort_t{program, "bitonic_sort_gpu"};
+    return sort_small_blocks_t{program, "small_blocks_sizes"};
+}
+
+//-----------------------------------------------------------------------------
+
+OpenCLSorting::sort_big_blocks_t OpenCLSorting::get_sorting_big_blocks()
+{
+    cl::Program program(context_, kernel_, BUILD_KERNEL_IMMEDIATELY);
+    return sort_big_blocks_t{program, "big_block_sizes"};
 }
 
 //-----------------------------------------------------------------------------
@@ -212,13 +222,21 @@ void OpenCLSorting::sort(It begin, It end)
 
     size_t cl_buf_size;
     cl::Buffer cl_data = copy_input_on_queue(begin, end, cl_buf_size);
-    sort_t gpu_part_of_sort = get_gpu_part_of_sort_function();
+ 
+    sort_small_blocks_t sorting_small_blocks = get_sorting_small_blocks();
 
-	cl::NDRange GlobalRange(cl_buf_size);
-    cl::EnqueueArgs Args(queue_, GlobalRange);
+    cl::NDRange GlobalRange(cl_buf_size);
+    cl::NDRange LocalRange(local_size_);
 
-    cl::Event Evt = gpu_part_of_sort(Args, cl_data, cl_buf_size);
-    Evt.wait();
+    cl::EnqueueArgs ArgsSmallBlocks(queue_, GlobalRange, LocalRange);
+    cl::Event FirstSortingSteps = sorting_small_blocks(ArgsSmallBlocks, cl_data);
+    FirstSortingSteps.wait();
+
+    sort_big_blocks_t sorting_big_blocks = get_sorting_big_blocks();
+
+    cl::EnqueueArgs ArgsBigBlocks(queue_, GlobalRange);
+    cl::Event LastSortingSteps = sorting_big_blocks(ArgsBigBlocks, cl_data, cl_buf_size);
+    LastSortingSteps.wait();
 
     cl::copy(queue_, cl_data, begin, end);
 
