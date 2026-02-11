@@ -39,6 +39,7 @@ if (BITONICSORT_MODULES)
   create_benchmark("${BITONICSORT_LOCAL_TIME_MEASURE}" "bitonicsort-local-time-measure.cpp" "${BITONICSORT_LIB}" "")
 else()
   create_benchmark("${BITONICSORST_TIME_MEASURE}" "bitonicsort-time-measure.cpp" "OpenCL::OpenCL" "")
+  create_benchmark("${BITONICSORT_LOCAL_TIME_MEASURE}" "bitonicsort-local-time-measure.cpp" "OpenCL::OpenCL" "")
 endif()
 
 create_benchmark("${STDSORT_TIME_MEASURE}" "stdsort-time-measure.cpp" "" "")

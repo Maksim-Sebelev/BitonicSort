@@ -77,15 +77,12 @@ else()
   message(WARNING "This library required c++20 for C++ modules. Functions from here will made nothing.")
 
   function(add_target_stacktrace_dump_lib target)
-      message(WARNING )
+      message(WARNING "NO EFFECTS BY THIS FUNCTION")
   endfunction(add_target_stacktrace_dump_lib)
 
 
   function(add_target_stacktrace_dump_lib_on_debug target)
-      target_link_libraries(${target}
-        PRIVATE
-          $<$<CONFIG:Debug>:${STACKTRACE_LIB}>
-      )
+      message(WARNING "NO EFFECTS BY THIS FUNCTION")
   endfunction(add_target_stacktrace_dump_lib_on_debug)
 
 endif(CMAKE_CXX_STANDARD GREATER_EQUAL 20)

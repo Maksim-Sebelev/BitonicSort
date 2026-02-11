@@ -54,7 +54,7 @@ target_compile_definitions(${BITONICSORT_RUNNER}
 )
 
 if (BITONICSORT_MODULES)
-add_target_stacktrace_dump_lib(${BITONICSORT_RUNNER})
+add_target_stacktrace_dump_lib_on_debug(${BITONICSORT_RUNNER})
 endif()
 
 # =================================================================================================

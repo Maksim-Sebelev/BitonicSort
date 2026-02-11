@@ -79,22 +79,22 @@ function run_all_random_init_arrays_bencmark
 {
     echo "Random init arrays tests:"
     echo
-    # run_benchmar_with_n_elems 10
-    # run_benchmar_with_n_elems 100
-    # run_benchmar_with_n_elems 1000
-    # run_benchmar_with_n_elems 10000
-    # run_benchmar_with_n_elems 100000
-    # run_benchmar_with_n_elems 200000
-    # run_benchmar_with_n_elems 300000
-    # run_benchmar_with_n_elems 400000
-    # run_benchmar_with_n_elems 500000
-    # run_benchmar_with_n_elems 600000
-    # run_benchmar_with_n_elems 700000
-    # run_benchmar_with_n_elems 800000
-    # run_benchmar_with_n_elems 900000
+    run_benchmar_with_n_elems 10
+    run_benchmar_with_n_elems 100
+    run_benchmar_with_n_elems 1000
+    run_benchmar_with_n_elems 10000
+    run_benchmar_with_n_elems 100000
+    run_benchmar_with_n_elems 200000
+    run_benchmar_with_n_elems 300000
+    run_benchmar_with_n_elems 400000
+    run_benchmar_with_n_elems 500000
+    run_benchmar_with_n_elems 600000
+    run_benchmar_with_n_elems 700000
+    run_benchmar_with_n_elems 800000
+    run_benchmar_with_n_elems 900000
     run_benchmar_with_n_elems 1000000
     run_benchmar_with_n_elems 10000000
-    # run_benchmar_with_n_elems 100000000
+    run_benchmar_with_n_elems 100000000
 
     echo
     echo

@@ -83,7 +83,7 @@ class OpenCLSorting
     cl::Context context_;
     cl::CommandQueue queue_;
     std::string kernel_;
-    cl_uint local_size_ = 256;
+    size_t local_size_ = 256;
 
     static cl::Platform select_platform()
     {
@@ -201,7 +201,7 @@ cl::Buffer OpenCLSorting::copy_input_on_queue(It begin, It end, size_t& cl_buf_s
     using type = typename It::value_type;
 
     const size_t size = std::distance(begin, end);
-    cl_buf_size = std::max(math::get_min_natural_power_of_2_greater_or_equal_than(size), static_cast<size_t>(local_size_));
+    cl_buf_size = std::max(math::get_min_natural_power_of_2_greater_or_equal_than(size), local_size_);
 
     cl::Buffer cl_data(context_, CL_MEM_READ_WRITE, cl_buf_size * sizeof(type));
     cl::copy(begin, end, cl_data);
@@ -295,6 +295,8 @@ ON_TIME(
 ) /* ON_TIME */
 }
 
+//-----------------------------------------------------------------------------
+
 template <BitonicSortIteratorConcept It>
 void OpenCLSorting::sort(It begin, It end)
 {
@@ -304,7 +306,6 @@ void OpenCLSorting::sort(It begin, It end)
 
     size_t cl_buf_size;
     cl::Buffer cl_data = copy_input_on_queue(begin, end, cl_buf_size);
-    // cl::Buffer cl_data_out(context_, CL_MEM_READ_ONLY, cl_buf_size * sizeof(type));
 
     sort_t gpu_part_of_sort = get_gpu_part_of_sort_function();
 

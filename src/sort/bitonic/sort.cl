@@ -21,7 +21,7 @@ __kernel void small_blocks_sizes(__global TYPE* data)
 
     ldata[it1] = data[git1];
     barrier(CLK_LOCAL_MEM_FENCE);
-    
+
     /* small stages */
     for (/* block_size = 2 */; block_size <= LOCAL_SIZE; block_size <<= 1)
     {
