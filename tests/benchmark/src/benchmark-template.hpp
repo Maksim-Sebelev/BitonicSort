@@ -26,8 +26,8 @@ int main()
 
     std::chrono::high_resolution_clock::time_point TimeFin = std::chrono::high_resolution_clock::now();
 
-    long Dur = std::chrono::duration_cast<std::chrono::milliseconds>(TimeFin - TimeStart).count();
-    std::cout << Dur << " ";
+    unsigned long sort_time = std::chrono::duration_cast<std::chrono::milliseconds>(TimeFin - TimeStart).count();
+    std::cout ON_TIME(<< "CPU: ") << sort_time << ON_TIME(")") " ";
 
     return EXIT_SUCCESS;
 }

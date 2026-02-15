@@ -254,6 +254,12 @@ OpenCLSorting::small_compare_distance_t OpenCLSorting::get_small_compare_distanc
 template <BitonicSortIteratorConcept It>
 void OpenCLSorting::sort_local(It begin, It end)
 {
+ON_TIME(
+    cl_ulong GPUTimeStart;
+    cl_ulong GPUTimeFin;
+    unsigned long long gpu_time = 0;
+) /* ON_TIME */
+
     using type = typename It::value_type;
 
     add_type_define_in_kernel<It>();
@@ -265,13 +271,17 @@ void OpenCLSorting::sort_local(It begin, It end)
     big_compare_distance_t big_compare_distance = get_big_compare_distance();
     small_compare_distance_t small_compare_distance = get_small_compare_distance();
 
-
     cl::EnqueueArgs Args1(queue_, cl::NDRange(cl_buf_size), cl::NDRange(local_size_));
     cl::EnqueueArgs Args2(queue_, cl::NDRange(cl_buf_size));
     cl::EnqueueArgs Args3(queue_, cl::NDRange(cl_buf_size), cl::NDRange(local_size_));
 
     cl::Event Evt = small_blocks_sizes(Args1, cl_data);
     Evt.wait();
+ON_TIME(
+    GPUTimeStart = Evt.getProfilingInfo<CL_PROFILING_COMMAND_START>();
+    GPUTimeFin = Evt.getProfilingInfo<CL_PROFILING_COMMAND_END>();
+    gpu_time += (GPUTimeFin - GPUTimeStart);
+) /* ON_TIME */
 
     for (cl_uint block_size = local_size_ << 1; block_size <= cl_buf_size; block_size <<= 1)
     {
@@ -279,19 +289,27 @@ void OpenCLSorting::sort_local(It begin, It end)
         {
             Evt = big_compare_distance(Args2, cl_data, block_size, stage_comparing_distance);
             Evt.wait();
+ON_TIME(
+    GPUTimeStart = Evt.getProfilingInfo<CL_PROFILING_COMMAND_START>();
+    GPUTimeFin = Evt.getProfilingInfo<CL_PROFILING_COMMAND_END>();
+    gpu_time += (GPUTimeFin - GPUTimeStart);
+) /* ON_TIME */
         }
 
         Evt = small_compare_distance(Args3, cl_data, block_size);
         Evt.wait();
+ON_TIME(
+    GPUTimeStart = Evt.getProfilingInfo<CL_PROFILING_COMMAND_START>();
+    GPUTimeFin = Evt.getProfilingInfo<CL_PROFILING_COMMAND_END>();
+    gpu_time += (GPUTimeFin - GPUTimeStart);
+) /* ON_TIME */
     }
 
     cl::copy(queue_, cl_data, begin, end);
 
 ON_TIME(
-    cl_ulong GPUTimeStart = Evt.getProfilingInfo<CL_PROFILING_COMMAND_START>();
-    cl_ulong GPUTimeFin = Evt.getProfilingInfo<CL_PROFILING_COMMAND_END>();
-    long GDur = (GPUTimeFin - GPUTimeStart) / 1000000; // ns -> ms
-    std::cout << "GPU pure time measured: " << GDur << " ms\n";
+    gpu_time /= 1000000;
+    std::cout << "(GPU: " << gpu_time << ", ";
 ) /* ON_TIME */
 }
 
@@ -320,8 +338,8 @@ void OpenCLSorting::sort(It begin, It end)
 ON_TIME(
     cl_ulong GPUTimeStart = Evt.getProfilingInfo<CL_PROFILING_COMMAND_START>();
     cl_ulong GPUTimeFin = Evt.getProfilingInfo<CL_PROFILING_COMMAND_END>();
-    long GDur = (GPUTimeFin - GPUTimeStart) / 1000000; // ns -> ms
-    std::cout << "GPU pure time measured: " << GDur << " ms\n";
+    unsigned long gpu_time = (GPUTimeFin - GPUTimeStart) / 1000000; // ns -> ms
+    std::cout << "(GPU: " << gpu_time << ", ";
 ) /* ON_TIME */
 }
 
