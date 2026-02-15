@@ -170,7 +170,16 @@ void OpenCLSorting::add_type_define_in_kernel()
 {
     using type = typename It::value_type;
 
-    kernel_ = "#define TYPE " + get_type_name<type>() + "\n#define LOCAL_SIZE " + std::to_string(local_size_) + "\n" + kernel_;
+    std::string defines;
+    if constexpr (not std::is_same_v<type, int>) /* int - default kernel value */
+        defines += "#define TYPE " + get_type_name<type>() + "\n";
+
+    if (local_size_ != 256) /* 256 - default kernel value */
+        defines += "#define LOCAL_SIZE " + std::to_string(local_size_) + "\n";
+
+    if (defines.empty()) return;
+
+    kernel_ = defines + kernel_;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------

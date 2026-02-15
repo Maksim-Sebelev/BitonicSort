@@ -1,0 +1,1 @@
+. "/home/ananasik/projects/C++/vlados/6/BitonicSort/third-party/conanbuildenv-release-x86_64.sh"

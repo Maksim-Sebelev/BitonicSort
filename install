@@ -1,2 +1,44 @@
 #!/bin/bash
-cmake --build build
+
+set -euo pipefail
+
+# Console colors
+CONSOLE_COLOR_GREEN='\x1b[32m'
+CONSOLE_COLOR_WHITE='\e[0;37m'
+CONSOLE_COLOR_YELLOW='\e[0;33m'
+CONSOLE_COLOR_RED='\x1b[31m'
+CONSOLE_BIND_FONT='\e[1m'
+RESET_CONSOLE_OUTPUT_SETTINGS='\e[0m'
+
+# console echo-wrapper functions
+function custom_echo
+{
+    local color=$1 font=$2 msg=$3
+
+    echo -e "${color}${font}${msg}${RESET_CONSOLE_OUTPUT_SETTINGS}"
+}
+
+function custom_echo_err
+{
+    local color=${CONSOLE_COLOR_RED} font=${CONSOLE_BIND_FONT} msg=$1
+
+    echo -e "${color}${font}${msg}${RESET_CONSOLE_OUTPUT_SETTINGS}" >&2
+}
+
+function skip_line_in_console
+{
+    echo
+}
+
+project_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+build_dir="$project_dir/build"
+
+custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Installing library..."
+
+cmake_command="cmake --build \"$build_dir\""
+
+custom_echo "${CONSOLE_COLOR_WHITE}" "" "${cmake_command}"
+eval ${cmake_command}
+
+custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Installing library completed successfully."
+skip_line_in_console

@@ -35,6 +35,8 @@ function skip_line_in_console
 project_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 build_dir="$project_dir/build"
 source_dir="$project_dir"
+third_party_dir="$project_dir/third-party"
+venv_dir="$project_dir/.venv"
 
 # declare variables for options parsing
 INSTALLATION_PREFIX="${build_dir}"
@@ -222,21 +224,9 @@ function parse_options
         esac
     done
 
-    if [ "${BENCHMARK}" = "ON" ] && [ "${CMAKE_EXPERIMENTAL_CXX_IMPORT_STD}" != "OFF" ]; then
-        echo -e "Hello from the beginning of 2026!"
-        echo -e "After 6 years of including C++ modules in the standard,"
-        echo -e "and 3 years after including 'import std;' in the standard,"
-        echo -e "we still don't have proper support for these features in GCC."
-        echo -e "Therefore, we need to use Clang for .cppm modules,"
-        echo -e "and libc++ (Clang's C++ standard library) for 'import std;'."
+    if [ "${INSTALL_DEPENDENCIES}" = "ON" ] && ( [ "${CXX_20_SUPPORT}" != "OFF" ] || [ "${CMAKE_EXPERIMENTAL_CXX_IMPORT_STD}" != "OFF" ] ); then
         echo -e "${CONSOLE_COLOR_YELLOW}"
-        echo -e "As you probably know, most libraries for Linux are built with libstdc++ as standart library."
-        echo -e "So if you want to use 'import std;', you must be prepared"
-        echo -e "that you can only link with libraries built with libc++."
-        echo -e "For example, you cannot benchmark it with Google Benchmark,"
-        echo -e "if you installed it via your distribution's package manager."
-        echo -e "You can try to build Google Benchmark from source with libc++,"
-        echo -e "or avoid using the '--cmake-experimental-cxx-import-std' option."
+        echo -e "Conan conflicts now with C++ standard greater 17"
         echo -e ""
         echo -e "${CONSOLE_COLOR_RED}"
         echo -e "Please be aware that with the current bootstrap options, the project will not build."
@@ -247,17 +237,21 @@ function parse_options
     skip_line_in_console
 }
 
-
-function clean_build_directory
+function clean_directory_if_exists_and_not_empty
 {
-    local build_dir="$1"
-    # clean build directory if exists and not empty
-    if [ -d "${build_dir}" ] && [ -n "$(ls -A "${build_dir}" 2>/dev/null)" ]; then
-        custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Cleaning directory: ${build_dir}/"
-        custom_echo "${CONSOLE_COLOR_WHITE}" "" "rm -rf ${build_dir}/"
+    local dir="$1"
+    if [ -d "${dir}" ] && [ -n "$(ls -A "${dir}" 2>/dev/null)" ]; then
+        custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Cleaning directory: ${dir}/"
+        custom_echo "${CONSOLE_COLOR_WHITE}" "" "rm -rf ${dir}/"
         skip_line_in_console
-        rm -rf "${build_dir}/"
-    fi
+        rm -rf "${dir}/"
+    fi   
+}
+
+function clean_build_directories
+{
+    clean_directory_if_exists_and_not_empty "${build_dir}"
+    clean_directory_if_exists_and_not_empty "${venv_dir}"
 }
 
 function check_that_exists
@@ -278,7 +272,11 @@ function check_this_script_dependencies
     custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Checking this script dependencies..."
 
     check_that_exists cmake || exit 1
+    check_that_exists python3 || exit 1
+    check_that_exists pip3 || exit 1
+    check_that_exists source || exit 1
     check_that_exists rm || exit 1
+    check_that_exists ls || exit 1
     # check_that_exists conan || exit 1
 
     custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "All script dependencies was found."
@@ -287,7 +285,13 @@ function check_this_script_dependencies
 
 function install_dependencies
 {
-    conan install --build=missing -of "${build_dir}"
+    custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Installing dependencies..."
+ 
+    python3 -m venv "${venv_dir}" && source "${venv_dir}/bin/activate" && pip3 install conan
+    conan install . --output-folder="${third_party_dir}" -s build_type=Release --build=missing
+
+    custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Installing dependencies completed successfully."
+    skip_line_in_console
 }
 
 function run_cmake()
@@ -325,6 +329,9 @@ function run_cmake()
         cmake_command="${cmake_command} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
     fi
 
+    if [ ${INSTALL_DEPENDENCIES} == "ON" ]; then
+        cmake_command="${cmake_command} -DCMAKE_TOOLCHAIN_FILE=\"${third_party_dir}/conan_toolchain.cmake\""
+    fi
 
     if [ ${INSTALL} == "ON" ]; then
         cmake_command="${cmake_command} -DINSTALL=ON -DCMAKE_INSTALL_PREFIX=\"${CMAKE_INSTALL_PREFIX}\""
@@ -339,7 +346,6 @@ function run_cmake()
 
 function build_inplace
 {
-
     custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Building project..."
     build_command="${project_dir}/install"
     custom_echo "${CONSOLE_COLOR_WHITE}" "" "${build_command}"
@@ -380,10 +386,9 @@ function finally_bootstrap_message
 }
 
 check_this_script_dependencies
-clean_build_directory "${build_dir}"
+clean_build_directories "${build_dir}"
 parse_options "$@"
 if [ "${INSTALL_DEPENDENCIES}" == "ON" ]; then
-echo "Not working now :)"
 install_dependencies
 fi
 run_cmake

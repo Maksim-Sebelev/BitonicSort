@@ -1,10 +1,8 @@
 [requires]
-benchmark/1.9.4
-gopengl/system
+opencl-headers/2023.04.17
+opencl-clhpp-headers/2023.04.17
+opencl-icd-loader/2023.04.17
 
 [generators]
 CMakeDeps
 CMakeToolchain
-
-[layout]
-cmake_layout
