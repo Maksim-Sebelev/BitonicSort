@@ -48,7 +48,7 @@ CMAKE_INSTALL_PREFIX=OFF
 CMAKE_EXPORT_COMPILE_COMMANDS=OFF
 BUILD_INPLACE=OFF
 BENCHMARK=OFF
-BUILD_TESTS=OFF
+TESTS=OFF
 SANITIZE=OFF
 INSTALL_DEPENDENCIES=OFF
 
@@ -187,7 +187,7 @@ function parse_options
                 ;;
 
             -t | --build-tests)
-                BUILD_TESTS=ON
+                TESTS=ON
                 shift
                 ;;
 
@@ -313,8 +313,8 @@ function run_cmake()
         cmake_command="${cmake_command} -DSANITIZE=ON"
     fi
 
-    if [ ${BUILD_TESTS} == "ON" ]; then
-        cmake_command="${cmake_command} -DBUILD_TESTS=ON"
+    if [ ${TESTS} == "ON" ]; then
+        cmake_command="${cmake_command} -DTESTS=ON"
     fi
 
     if [ ${BENCHMARK} == "ON" ]; then
@@ -366,7 +366,7 @@ function finally_bootstrap_message
         return
     fi
 
-    if [ "${BUILD_TESTS}" == "ON" ]; then
+    if [ "${TESTS}" == "ON" ]; then
         custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Tests was successfully generated. Run ctests, to check it:"
         custom_echo "${CONSOLE_COLOR_WHITE}" "" "ctest --test-dir build"
         skip_line_in_console

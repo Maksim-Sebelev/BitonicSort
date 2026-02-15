@@ -30,7 +30,23 @@ if (NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 11)
 endif()
 
-if (CMAKE_CXX_STANDARD STREQUAL 20 OR CMAKE_CXX_STANDARD STREQUAL 23)
+if (NOT NO_TESTS)
+  set(TESTS ON)
+endif()
+
+if (NOT NO_BENCHMARK)
+  set(BENCHMARK ON)
+endif()
+
+if (NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+
+if (NOT CMAKE_BUILD_TYPE STREQUAL Release)
+  add_compile_definitions(BITONICSORT_DEBUG)  
+endif()
+
+if (CMAKE_CXX_STANDARD GREATER_EQUAL 20)
   set(BITONICSORT_MODULES ON)
   set(BITONICSORT_HEADER_ONLY OFF)
 else()
@@ -40,12 +56,18 @@ endif()
 
 # ==================================================================================
 
-if (BITONICSORT_MODULES)
+set(SORT_SRC_DIR ${SRC_DIR}/sort)
+set(BITONICSORT_SRC_DIR ${SORT_SRC_DIR}/bitonic)
+set(BITONICSORT_OPENCL_KERNEL ${BITONICSORT_SRC_DIR}/sort.cl)
+
+if (BITONICSORT_HEADER_ONLY)
+  add_compile_definitions(BITONICSORT_OPENCL_KERNEL="${BITONICSORT_OPENCL_KERNEL}") # crigne for header-only :(
+endif()
 
 # ==================================================================================
 
-  set(SORT_SRC_DIR ${SRC_DIR}/sort)
 
+if (BITONICSORT_MODULES)
 # ==================================================================================
 # add math library
 
@@ -53,7 +75,7 @@ if (BITONICSORT_MODULES)
   set(MATH_SRC_DIR ${SRC_DIR}/math)
 
   set(MATH_SRCS
-      ${MATH_SRC_DIR}/math.cppm
+    ${MATH_SRC_DIR}/math.cppm
   )
 
   add_library(${MATH_LIB})
@@ -80,13 +102,11 @@ if (BITONICSORT_MODULES)
 # add bitonic sort library
 
   set(BITONICSORT_LIB bitonic)
-  set(BITONICSORT_SRC_DIR ${SORT_SRC_DIR}/bitonic)
 
   set(BITONICSORT_SRCS
       ${BITONICSORT_SRC_DIR}/sort.cppm
   )
 
-  set(BITONICSORT_OPENCL_KERNEL ${BITONICSORT_SRC_DIR}/sort.cl)
 
   add_library(${BITONICSORT_LIB})
 
@@ -128,7 +148,7 @@ set(TEST_DIR ${CMAKE_SOURCE_DIR}/tests)
 # ==================================================================================
 # building tests if enabled
 
-if (BUILD_TESTS)
+if (TESTS)
   include(${CMAKE_SETTINGS_DIR}/tests/e2e/bitonic-sort-e2e-tests.cmake)
 endif()
 

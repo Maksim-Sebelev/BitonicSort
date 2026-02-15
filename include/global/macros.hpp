@@ -2,13 +2,19 @@
 
 //---------------------------------------------------------------------------------------------------------------
 
+#if not defined(BITONICSORT_CXX_23_SUPPORT)
+#include <cstdlib>  /* for std::exit */
+#include <iostream> /* fot std::cerr */
+#endif /* not defined(BITONICSORT_CXX_23_SUPPORT) */
+
+//---------------------------------------------------------------------------------------------------------------
+
 #if defined(NDEBUG) and defined(BITONICSORT_DEBUG)
 #error "bad release-debug macro combo"
 #endif /* defined(NDEBUG) and (defined(_DEBUG) or defined(DEBUG)) */
 
 //---------------------------------------------------------------------------------------------------------------
 
-
 #if not defined(EXIT_SUCCESS)
 #define EXIT_SUCCESS 0
 #endif /* not defined(EXIT_SUCCESS) */
@@ -31,10 +37,6 @@
 #if not defined(EXIT_FAILURE)
 #define EXIT_FAILURE 1
 #endif /* not defined(EXIT_SUCCESS) */
-
-//---------------------------------------------------------------------------------------------------------------
-
-#include <cassert> // for msg_assert
 
 //---------------------------------------------------------------------------------------------------------------
 
@@ -52,6 +54,8 @@
 
 //---------------------------------------------------------------------------------------------------------------
 
+#define BITONICSORT_DEBUG
+
 #if defined(BITONICSORT_DEBUG)
 
 //---------------------------------------------------------------------------------------------------------------
@@ -65,7 +69,7 @@
 #define msg_assert(bool_expression, message)                                                                           \
     do                                                                                                                 \
     {                                                                                                                  \
-        if (not(bool_expression))                                                                                      \
+        if (not (bool_expression))                                                                                     \
         {                                                                                                              \
             std::cerr << RED BOLD "assertation failed:\n" RESET_CONSOLE_OUT WHITE << #bool_expression << "\n"          \
                       << __FILE__ << ":" << __LINE__ << " [" << __func__                                               \

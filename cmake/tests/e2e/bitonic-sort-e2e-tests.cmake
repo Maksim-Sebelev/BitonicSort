@@ -61,6 +61,36 @@ add_target_stacktrace_dump_lib(${BITONICSORT_RUNNER})
 endif()
 
 # =================================================================================================
+# compile bitonicsort runner
+set(BITONICSORTLOCALMEM_RUNNER bitonic-sort-localmem)
+
+add_executable(${BITONICSORTLOCALMEM_RUNNER}
+    ${E2E_DIR}/bitonic-sort-localmem.cpp
+)
+
+target_link_libraries(${BITONICSORTLOCALMEM_RUNNER}
+  PRIVATE
+    $<$<BOOL:${BITONICSORT_MODULES}>:${BITONICSORT_LIB}>
+    $<$<BOOL:${BITONICSORT_HEADER_ONLY}>:OpenCL::OpenCL>
+)
+
+target_include_directories(${BITONICSORTLOCALMEM_RUNNER}
+  PRIVATE
+    ${INC_DIR}
+)
+
+target_compile_definitions(${BITONICSORTLOCALMEM_RUNNER}
+    PRIVATE
+    $<$<BOOL:${BITONICSORT_MODULES}>:BITONICSORT_MODULES>
+    $<$<BOOL:${CMAKE_CXX_MODULE_STD}>:BITONICSORT_CXX_23_SUPPORT>
+    BITONICSORT_OPENCL_KERNEL="${SRC_DIR}/sort/bitonic/sort.cl"
+)
+
+if (BITONICSORT_MODULES)
+add_target_stacktrace_dump_lib(${BITONICSORTLOCALMEM_RUNNER})
+endif()
+
+# =================================================================================================
 # give execute permission to python script
 file(CHMOD ${PYTHON_RUN_TEST_SCRIPT}
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
@@ -119,5 +149,6 @@ endfunction(target_e2e_tests)
 # =================================================================================================
 
 target_e2e_tests("${BITONICSORT_RUNNER}" "${E2E_OUTPUT_SCRIPT}" "${E2E_DAT_DIR}")
+target_e2e_tests("${BITONICSORTLOCALMEM_RUNNER}" "${E2E_OUTPUT_SCRIPT}" "${E2E_DAT_DIR}")
 
 # =================================================================================================
