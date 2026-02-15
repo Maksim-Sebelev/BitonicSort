@@ -52,6 +52,17 @@ namespace __detail
 
 //----------------------------------------------------------------------------------------------------------------------------
 
+template <typename  T>
+inline std::string get_type_name() { return "unknown"; }
+
+// not a constexpr, because c++11, and we need std::string as return type
+template <> inline std::string get_type_name<int>() { return STRINGIFY(int); }
+template <> inline std::string get_type_name<float>() { return STRINGIFY(float); }
+template <> inline std::string get_type_name<double>() { return STRINGIFY(double); }
+
+
+//----------------------------------------------------------------------------------------------------------------------------
+
 class OpenCLSorting
 {
   private:
@@ -98,14 +109,6 @@ class OpenCLSorting
         Code = ShaderStream.str();
         return Code;
     }
-
-    template <typename  T>
-    inline static std::string get_type_name() { return "unknown"; }
-
-    // not a constexpr, because c++11, and we need std::string as return type
-    template <> std::string get_type_name<int>() { return STRINGIFY(int); }
-    template <> std::string get_type_name<float>() { return STRINGIFY(float); }
-    template <> std::string get_type_name<double>() { return STRINGIFY(double); }
 
     using sort_small_blocks_t = cl::KernelFunctor<cl::Buffer>;
     using sort_big_blocks_t = cl::KernelFunctor<cl::Buffer, cl_uint>;
