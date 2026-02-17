@@ -28,18 +28,18 @@ function(create_benchmark target source to_link to_include)
     )
 endfunction(create_benchmark target)
 
-set(BITONICSORST_TIME_MEASURE bitonic-benchmark)
+set(BITONICSORST_TIME_MEASURE bitonic-sort-benchmark)
 set(STDSORT_TIME_MEASURE stdsort-benchmark)
-set(BITONICSORSTLOCALMEM_TIME_MEASURE bitonicsort-localmem-benchmark)
+set(BITONICSORT_LOCAL_TIME_MEASURE bitonic-sort-local-benchmark)
 
 # =================================================================================================
 
 if (BITONICSORT_MODULES)
   create_benchmark("${BITONICSORST_TIME_MEASURE}" "bitonicsort-time-measure.cpp" "${BITONICSORT_LIB}" "")
-  create_benchmark("${BITONICSORSTLOCALMEM_TIME_MEASURE}" "bitonicsort-localmem-time-measure.cpp" "${BITONICSORT_LIB}" "")
+  create_benchmark("${BITONICSORT_LOCAL_TIME_MEASURE}" "bitonicsort-local-time-measure.cpp" "${BITONICSORT_LIB}" "")
 else()
   create_benchmark("${BITONICSORST_TIME_MEASURE}" "bitonicsort-time-measure.cpp" "OpenCL::OpenCL" "")
-  create_benchmark("${BITONICSORSTLOCALMEM_TIME_MEASURE}" "bitonicsort-localmem-time-measure.cpp" "OpenCL::OpenCL" "")
+  create_benchmark("${BITONICSORT_LOCAL_TIME_MEASURE}" "bitonicsort-local-time-measure.cpp" "OpenCL::OpenCL" "")
 endif()
 
 # TODO: back next line

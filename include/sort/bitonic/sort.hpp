@@ -86,7 +86,7 @@ class OpenCLSorting
         throw std::runtime_error("No platform selected");
     }
 
-    inline static cl::Context get_gpu_context(cl_platform_id PId)
+    inline static cl::Context  get_gpu_context(cl_platform_id PId)
     {
         cl_context_properties properties[] =
         {
@@ -121,11 +121,23 @@ class OpenCLSorting
     inline sort_small_blocks_t get_sorting_small_blocks();
     inline sort_big_blocks_t get_sorting_big_blocks();
 
+    using small_blocks_sizes_t = cl::KernelFunctor<cl::Buffer>;
+    using big_compare_distance_t = cl::KernelFunctor<cl::Buffer, cl_uint, cl_uint>;
+    using small_compare_distance_t = cl::KernelFunctor<cl::Buffer, cl_uint>;
+
+    sort_t get_gpu_part_of_sort_function();
+
+
+    inline small_blocks_sizes_t     get_small_blocks_sizes();
+    inline big_compare_distance_t   get_big_compare_distance();
+    inline small_compare_distance_t get_small_compare_distance();
+
     template <typename It>
     inline void add_type_define_in_kernel();
     template <typename It>
     inline cl::Buffer copy_input_on_queue(It begin, It end, size_t& cl_buf_size);
     
+
     enum { BUILD_KERNEL_IMMEDIATELY = true };
   public:
 
@@ -133,7 +145,7 @@ class OpenCLSorting
     platform_(select_platform()),
     context_(get_gpu_context(platform_())),
     queue_(context_, cl::QueueProperties::Profiling | cl::QueueProperties::OutOfOrder), 
-    kernel_(readFile(BITONICSORT_OPENCL_KERNEL)),
+    kernel_(readFile(S_BITONICSORT_OPENCL_KERNEL)),
     local_size_(256)
     {}
 
@@ -151,7 +163,7 @@ inline void OpenCLSorting::add_type_define_in_kernel()
 {
     using type = typename It::value_type;
 
-    kernel_ = "#define TYPE " + get_type_name<type>() + "\n" "#define LOCAL_SIZE " + std::to_string(local_size_) + "\n" + kernel_;
+    kernel_ = "#define TYPE " + get_type_name<type>() + "\n#define LOCAL_SIZE " + std::to_string(local_size_) + "\n" + kernel_;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------
@@ -162,7 +174,7 @@ inline cl::Buffer OpenCLSorting::copy_input_on_queue(It begin, It end, size_t& c
     using type = typename It::value_type;
 
     const size_t size = std::distance(begin, end);
-    cl_buf_size = math::min_power_of_2_greater_or_equal_than(size);
+    cl_buf_size = std::max(math::get_min_natural_power_of_2_greater_or_equal_than(size), local_size_);
 
     cl::Buffer cl_data(context_, CL_MEM_READ_WRITE, cl_buf_size * sizeof(type));
     cl::copy(begin, end, cl_data);
@@ -229,6 +241,94 @@ ON_TIME(
     cl::Buffer cl_data = copy_input_on_queue(begin, end, cl_buf_size);
 
     sort_small_blocks_t small_blocks_sizes = get_sorting_small_blocks();
+    big_compare_distance_t big_compare_distance = get_big_compare_distance();
+    small_compare_distance_t small_compare_distance = get_small_compare_distance();
+
+    cl::EnqueueArgs Args1(queue_, cl::NDRange(cl_buf_size), cl::NDRange(local_size_));
+    cl::EnqueueArgs Args2(queue_, cl::NDRange(cl_buf_size));
+    cl::EnqueueArgs Args3(queue_, cl::NDRange(cl_buf_size), cl::NDRange(local_size_));
+
+    cl::Event Evt = small_blocks_sizes(Args1, cl_data);
+    Evt.wait();
+ON_TIME(
+    GPUTimeStart = Evt.getProfilingInfo<CL_PROFILING_COMMAND_START>();
+    GPUTimeFin = Evt.getProfilingInfo<CL_PROFILING_COMMAND_END>();
+    gpu_time += (GPUTimeFin - GPUTimeStart);
+) /* ON_TIME */
+
+    for (cl_uint block_size = local_size_ << 1; block_size <= cl_buf_size; block_size <<= 1)
+    {
+        for (cl_uint stage_comparing_distance = (block_size >> 1); stage_comparing_distance >= local_size_; stage_comparing_distance >>= 1)
+        {
+            Evt = big_compare_distance(Args2, cl_data, block_size, stage_comparing_distance);
+            Evt.wait();
+ON_TIME(
+    GPUTimeStart = Evt.getProfilingInfo<CL_PROFILING_COMMAND_START>();
+    GPUTimeFin = Evt.getProfilingInfo<CL_PROFILING_COMMAND_END>();
+    gpu_time += (GPUTimeFin - GPUTimeStart);
+) /* ON_TIME */
+        }
+
+        Evt = small_compare_distance(Args3, cl_data, block_size);
+        Evt.wait();
+ON_TIME(
+    GPUTimeStart = Evt.getProfilingInfo<CL_PROFILING_COMMAND_START>();
+    GPUTimeFin = Evt.getProfilingInfo<CL_PROFILING_COMMAND_END>();
+    gpu_time += (GPUTimeFin - GPUTimeStart);
+) /* ON_TIME */
+    }
+
+    cl::copy(queue_, cl_data, begin, end);
+
+ON_TIME(
+    gpu_time /= 1000000;
+    std::cout << "(GPU: " << gpu_time << ", ";
+) /* ON_TIME */
+}
+
+//-----------------------------------------------------------------------------
+
+inline OpenCLSorting::small_blocks_sizes_t OpenCLSorting::get_small_blocks_sizes()
+{
+    cl::Program program(context_, kernel_, BUILD_KERNEL_IMMEDIATELY);
+    return small_blocks_sizes_t{program, "small_blocks_sizes"};
+}
+
+//-----------------------------------------------------------------------------
+
+inline OpenCLSorting::big_compare_distance_t OpenCLSorting::get_big_compare_distance()
+{
+    cl::Program program(context_, kernel_, BUILD_KERNEL_IMMEDIATELY);
+    return big_compare_distance_t{program, "big_compare_distance"};
+}
+
+//-----------------------------------------------------------------------------
+
+inline OpenCLSorting::small_compare_distance_t OpenCLSorting::get_small_compare_distance()
+{
+    cl::Program program(context_, kernel_, BUILD_KERNEL_IMMEDIATELY);
+    return small_compare_distance_t{program, "small_compare_distance"};
+}
+
+//-----------------------------------------------------------------------------
+
+template <typename It>
+inline void OpenCLSorting::sort_local(It begin, It end)
+{
+ON_TIME(
+    cl_ulong GPUTimeStart;
+    cl_ulong GPUTimeFin;
+    unsigned long long gpu_time = 0;
+) /* ON_TIME */
+
+    using type = typename It::value_type;
+
+    add_type_define_in_kernel<It>();
+
+    size_t cl_buf_size;
+    cl::Buffer cl_data = copy_input_on_queue(begin, end, cl_buf_size); msg_assert(cl_buf_size >= LOCAL_SIZE, "this need for simplify of work with small sizes");
+
+    small_blocks_sizes_t small_blocks_sizes = get_small_blocks_sizes();
     big_compare_distance_t big_compare_distance = get_big_compare_distance();
     small_compare_distance_t small_compare_distance = get_small_compare_distance();
 

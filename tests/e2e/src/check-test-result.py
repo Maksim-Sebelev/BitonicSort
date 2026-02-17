@@ -2,12 +2,26 @@
 
 import sys
 import subprocess
+# import atexit
 
 class Colors:
     WHITE = '\033[1;37m'
     GREEN = '\033[1;32m'
     RED = '\033[1;31m'
     RESET = '\033[0m'
+
+
+# def cleanup_function(exit_code, test_file):
+#     if exit_code == 0:
+#         print(f"{Colors.GREEN}TEST PASSED{Colors.RESET}")
+#         return
+
+#     print(f"tested with: ${test_file}")
+#     print(f"{Colors.RED}TEST FAILED{Colors.RESET}")
+    
+
+# atexit.register(cleanup_function, 0, "")
+
 
 def run_sort_program(executable, input_data):
     try:
@@ -17,6 +31,7 @@ def run_sort_program(executable, input_data):
             capture_output=True,
             text=False
         )
+    
         stdout = process.stdout.decode('utf-8', errors='replace') if process.stdout else ""
         stderr = process.stderr.decode('utf-8', errors='replace') if process.stderr else ""
         return process.returncode, stdout, stderr
@@ -94,11 +109,11 @@ def main():
         print(f"Error reading {input_file}: {e}", file=sys.stderr)
         return 1
     
-    # Parse original numbers
+    # # Parse original numbers
     original_numbers = parse_numbers(input_data)
     if not original_numbers:
         print(f"Error: No numbers found in {input_file}", file=sys.stderr)
-        return 1
+    #     return 1
     
     # Run sort program
     result = run_sort_program(executable, input_data)

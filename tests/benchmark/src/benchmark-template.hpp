@@ -2,6 +2,8 @@
 #error "Define macro 'SORT_FUNCTION' before include this file"
 #endif /* not defined(SORT_FUNCTION) */
 
+#include "global/macros.hpp"
+
 #if defined(BITONICSORT_CXX_23_SUPPORT)
 import std;
 #else /* defined(BITONICSORT_CXX_23_SUPPORT) */
@@ -22,8 +24,8 @@ int main()
     SORT_FUNCTION(v.begin(), v.end());
     std::chrono::high_resolution_clock::time_point TimeFin = std::chrono::high_resolution_clock::now();
 
-    long sort_time = std::chrono::duration_cast<std::chrono::milliseconds>(TimeFin - TimeStart).count();
-    std::cout << sort_time << " ";
+    unsigned long sort_time = std::chrono::duration_cast<std::chrono::milliseconds>(TimeFin - TimeStart).count();
+    std::cout ON_TIME(<< "CPU: ") << sort_time << ON_TIME(")") " ";
 
-    return 0;
+    return EXIT_SUCCESS;
 }

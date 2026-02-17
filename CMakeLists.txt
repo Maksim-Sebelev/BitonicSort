@@ -30,22 +30,6 @@ if (NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 11)
 endif()
 
-if (NOT NO_TESTS)
-  set(TESTS ON)
-endif()
-
-if (NOT NO_BENCHMARK)
-  set(BENCHMARK ON)
-endif()
-
-if (NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
-
-if (NOT CMAKE_BUILD_TYPE STREQUAL Release)
-  add_compile_definitions(BITONICSORT_DEBUG)  
-endif()
-
 if (CMAKE_CXX_STANDARD GREATER_EQUAL 20)
   set(BITONICSORT_MODULES ON)
   set(BITONICSORT_HEADER_ONLY OFF)
@@ -56,13 +40,11 @@ endif()
 
 # ==================================================================================
 
-set(SORT_SRC_DIR ${SRC_DIR}/sort)
-set(BITONICSORT_SRC_DIR ${SORT_SRC_DIR}/bitonic)
-set(BITONICSORT_OPENCL_KERNEL ${BITONICSORT_SRC_DIR}/sort.cl)
+include(${CMAKE_SETTINGS_DIR}/debug/stacktrace.cmake)
 
-if (BITONICSORT_HEADER_ONLY)
-  add_compile_definitions(BITONICSORT_OPENCL_KERNEL="${BITONICSORT_OPENCL_KERNEL}") # crigne for header-only :(
-endif()
+# ==================================================================================
+
+if (BITONICSORT_MODULES)
 
 # ==================================================================================
 
@@ -96,7 +78,10 @@ if (BITONICSORT_MODULES)
   target_compile_definitions(${MATH_LIB}
     PRIVATE
       $<$<BOOL:${CMAKE_CXX_MODULE_STD}>:BITONICSORT_CXX_23_SUPPORT>
+
   )
+
+  add_target_stacktrace_dump_lib_on_debug(${MATH_LIB})
 
 # ==================================================================================
 # add bitonic sort library
@@ -135,6 +120,7 @@ if (BITONICSORT_MODULES)
       BITONICSORT_OPENCL_KERNEL="${BITONICSORT_OPENCL_KERNEL}"
   )
 
+  add_target_stacktrace_dump_lib_on_debug(${BITONICSORT_LIB})
 # ==================================================================================
 
   set(BITONICSORT_NAMESPACE sort)
@@ -148,14 +134,14 @@ set(TEST_DIR ${CMAKE_SOURCE_DIR}/tests)
 # ==================================================================================
 # building tests if enabled
 
-if (TESTS)
+if (NOT NO_TESTS)
   include(${CMAKE_SETTINGS_DIR}/tests/e2e/bitonic-sort-e2e-tests.cmake)
 endif()
 
 # ==================================================================================
 # building benchmark if enabled
 
-if (BENCHMARK)
+if (NOT NO_BENCHMARK)
   include(${CMAKE_SETTINGS_DIR}/tests/benchmark/benchmark.cmake)
 endif()
 
