@@ -21,18 +21,19 @@ endif()
 # create tun_test script for e2e paracl test
 
 set(E2E_DIR ${TEST_DIR}/e2e)
+set(E2E_SRC_DIR ${E2E_DIR}/src)
 set(E2E_DAT_DIR ${E2E_DIR}/dat)
 
-set(PYTHON_RUN_TEST_SCRIPT         ${E2E_DIR}/check-test-result.py)
-set(RUN_TEST_SCRIPT_IN             ${E2E_DIR}/run_n_test.sh.in)
+set(PYTHON_RUN_TEST_SCRIPT         ${E2E_SRC_DIR}/check-test-result.py)
+set(RUN_TEST_SCRIPT_IN             ${E2E_SRC_DIR}/run_n_test.sh.in)
 set(E2E_OUTPUT_SCRIPT              ${PROJECT_BINARY_DIR}/run_n_test)
 
 # =================================================================================================
-# compile bitonicsort runner
-set(BITONICSORT_RUNNER bitonic-sort)
+# add bitonicsort runner
+set(BITONICSORT_RUNNER bitonic-sort-test)
 
 add_executable(${BITONICSORT_RUNNER}
-    ${E2E_DIR}/bitonic-sort.cpp
+    ${E2E_SRC_DIR}/bitonic-sort.cpp
 )
 
 target_link_libraries(${BITONICSORT_RUNNER}
@@ -55,6 +56,37 @@ target_compile_definitions(${BITONICSORT_RUNNER}
 
 if (BITONICSORT_MODULES)
 add_target_stacktrace_dump_lib_on_debug(${BITONICSORT_RUNNER})
+endif()
+
+# =================================================================================================
+# add bitonicsort local runner
+set(BITONICSORT_LOCAL_RUNNER bitonic-sort-local-test)
+
+add_executable(${BITONICSORT_LOCAL_RUNNER}
+    ${E2E_SRC_DIR}/bitonic-sort-local.cpp
+)
+
+target_link_libraries(${BITONICSORT_LOCAL_RUNNER}
+  PRIVATE
+    $<$<BOOL:${BITONICSORT_MODULES}>:${BITONICSORT_LIB}>
+    $<$<BOOL:${BITONICSORT_HEADER_ONLY}>:OpenCL::OpenCL>
+)
+
+target_include_directories(${BITONICSORT_LOCAL_RUNNER}
+  PRIVATE
+    ${INC_DIR}
+    ${E2E_SRC_DIR}
+)
+
+target_compile_definitions(${BITONICSORT_LOCAL_RUNNER}
+    PRIVATE
+    $<$<BOOL:${BITONICSORT_MODULES}>:BITONICSORT_MODULES>
+    $<$<BOOL:${CMAKE_CXX_MODULE_STD}>:BITONICSORT_CXX_23_SUPPORT>
+    BITONICSORT_OPENCL_KERNEL="${SRC_DIR}/sort/bitonic/sort.cl"
+)
+
+if (BITONICSORT_MODULES)
+add_target_stacktrace_dump_lib_on_debug(${BITONICSORT_LOCAL_RUNNER})
 endif()
 
 # =================================================================================================
@@ -116,5 +148,6 @@ endfunction(target_e2e_tests)
 # =================================================================================================
 
 target_e2e_tests("${BITONICSORT_RUNNER}" "${E2E_OUTPUT_SCRIPT}" "${E2E_DAT_DIR}")
+target_e2e_tests("${BITONICSORT_LOCAL_RUNNER}" "${E2E_OUTPUT_SCRIPT}" "${E2E_DAT_DIR}")
 
 # =================================================================================================

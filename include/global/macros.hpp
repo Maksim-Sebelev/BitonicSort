@@ -60,7 +60,7 @@
 #define OFF_BITONICSORT_DEBUG(...)
 
 #define builtin_unreachable_wrapper(debug_message)                                                                     \
-    msg_assert(false, "__builtin_unreachable() reaached\n" << debug_message)
+    msg_assert(false, "__builtin_unreachable() reached\n" << debug_message)
 
 #define msg_assert(bool_expression, message)                                                                           \
     do                                                                                                                 \
@@ -95,7 +95,7 @@
 //---------------------------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------------------
 
-#define msg_abort(bool_expression, message)                                                                         \
+#define msg_abort(bool_expression, message)                                                                            \
     do                                                                                                                 \
     {                                                                                                                  \
         if (not(bool_expression))                                                                                      \
@@ -136,14 +136,6 @@
 #else /* defined(TIME) */
 #define ON_TIME(...)
 #endif /* defined(TIME) */
-
-//---------------------------------------------------------------------------------------------------------------
-
-#if defined(LOG)
-#define ON_LOGGER(...) __VA_ARGS__
-#else /* defined(LOG) */
-#define ON_LOGGER(...)
-#endif /* defined(LOG) */
 
 //---------------------------------------------------------------------------------------------------------------
 

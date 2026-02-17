@@ -28,7 +28,7 @@ function(create_benchmark target source to_link to_include)
     )
 endfunction(create_benchmark target)
 
-set(BITONICSORST_TIME_MEASURE bitonic-benchmark)
+set(BITONICSORST_TIME_MEASURE bitonic-sort-benchmark)
 set(STDSORT_TIME_MEASURE stdsort-benchmark)
 set(BITONICSORT_LOCAL_TIME_MEASURE bitonic-sort-local-benchmark)
 

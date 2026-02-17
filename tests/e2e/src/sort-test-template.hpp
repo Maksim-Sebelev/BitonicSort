@@ -2,12 +2,15 @@
 dont using import std, because include opencl
 (no module global fragment in .cpp file)
 */
+
+#if not defined(SORT_FUNCTION)
+#error "Please define macro 'SORT_FUNCTION' before include this file"
+#endif /* not defined(SORT_FUNCTION) */
+
 #include <iostream>
 #include <vector>
 #include <stdexcept>
-#include <algorithm>
 
-#include "global/macros.hpp"
 
 #ifndef CL_HPP_TARGET_OPENCL_VERSION
 #define CL_HPP_MINIMUM_OPENCL_VERSION 120
@@ -20,12 +23,9 @@ dont using import std, because include opencl
 #include <CL/cl.h>
 #include <CL/opencl.hpp>
 
-#if defined(BITONICSORT_MODULES)
-import bitonic_sort;
+#include "global/macros.hpp"
+
 ON_STACKTRACE(import exception_stack_trace;)
-#else /* defined(BITONICSORT_MODULES) */
-#include "sort/bitonic/sort.hpp"
-#endif /* defined(BITONICSORT_MODULES) */
 
 int main()
 try
@@ -36,7 +36,7 @@ try
     while (std::cin >> vi)
         v.push_back(vi);
 
-    sort::bitonic::sort_local(v.begin(), v.end());
+    SORT_FUNCTION(v.begin(), v.end());
 
     for (auto vii: v)
         std::cout << vii << " ";

@@ -136,14 +136,14 @@ set(TEST_DIR ${CMAKE_SOURCE_DIR}/tests)
 # ==================================================================================
 # building tests if enabled
 
-if (BUILD_TESTS)
+if (NOT NO_TESTS)
   include(${CMAKE_SETTINGS_DIR}/tests/e2e/bitonic-sort-e2e-tests.cmake)
 endif()
 
 # ==================================================================================
 # building benchmark if enabled
 
-if (BENCHMARK)
+if (NOT NO_BENCHMARK)
   include(${CMAKE_SETTINGS_DIR}/tests/benchmark/benchmark.cmake)
 endif()
 
