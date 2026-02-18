@@ -4,6 +4,11 @@ project(BitonicSort
   VERSION 1.2
   LANGUAGES CXX
 )
+# ==================================================================================
+
+if (NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
 
 # ==================================================================================
 # find dependencies
