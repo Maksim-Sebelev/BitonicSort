@@ -31,6 +31,8 @@
 
 #if not defined(BITONICSORT_OPENCL_KERNEL)
 #error "Please define 'BITONICSORT_OPENCL_KERNEL' before include this header. Witout this macro we cannot find kernnel, because didnt know absolute way."
+#else /* not defined(BITONICSORT_OPENCL_KERNEL) */
+#define S_BITONICSORT_OPENCL_KERNEL BITONICSORT_OPENCL_KERNEL
 #endif /* not defined(BITONICSORT_OPENCL_KERNEL) */
 
 //----------------------------------------------------------------------------------------------------------------------------
@@ -49,17 +51,6 @@ template <typename It> inline void sort_local(It begin, It end);
 
 namespace __detail
 {
-
-//----------------------------------------------------------------------------------------------------------------------------
-
-template <typename  T>
-inline std::string get_type_name() { return "unknown"; }
-
-// not a constexpr, because c++11, and we need std::string as return type
-template <> inline std::string get_type_name<int>() { return STRINGIFY(int); }
-template <> inline std::string get_type_name<float>() { return STRINGIFY(float); }
-template <> inline std::string get_type_name<double>() { return STRINGIFY(double); }
-
 
 //----------------------------------------------------------------------------------------------------------------------------
 
@@ -110,16 +101,15 @@ class OpenCLSorting
         return Code;
     }
 
-    using sort_small_blocks_t = cl::KernelFunctor<cl::Buffer>;
-    using sort_big_blocks_t = cl::KernelFunctor<cl::Buffer, cl_uint>;
-    using big_compare_distance_t = cl::KernelFunctor<cl::Buffer, cl_uint, cl_uint>;
-    using small_compare_distance_t = cl::KernelFunctor<cl::Buffer, cl_uint>;
+    template <typename  T>
+    inline static std::string get_type_name() { return "unknown"; }
 
-    inline big_compare_distance_t   get_big_compare_distance();
-    inline small_compare_distance_t get_small_compare_distance();
+    // not a  constexpr, because c++11, and we need std::string as return type
+    template <> std::string get_type_name<int>() { return STRINGIFY(int); }
+    template <> std::string get_type_name<float>() { return STRINGIFY(float); }
+    template <> std::string get_type_name<double>() { return STRINGIFY(double); }
 
-    inline sort_small_blocks_t get_sorting_small_blocks();
-    inline sort_big_blocks_t get_sorting_big_blocks();
+    using sort_t = cl::KernelFunctor<cl::Buffer, cl_uint>;
 
     using small_blocks_sizes_t = cl::KernelFunctor<cl::Buffer>;
     using big_compare_distance_t = cl::KernelFunctor<cl::Buffer, cl_uint, cl_uint>;
@@ -192,98 +182,10 @@ inline cl::Buffer OpenCLSorting::copy_input_on_queue(It begin, It end, size_t& c
 
 //-----------------------------------------------------------------------------
 
-OpenCLSorting::sort_small_blocks_t OpenCLSorting::get_sorting_small_blocks()
+inline OpenCLSorting::sort_t OpenCLSorting::get_gpu_part_of_sort_function()
 {
     cl::Program program(context_, kernel_, BUILD_KERNEL_IMMEDIATELY);
-    return sort_small_blocks_t{program, "small_blocks_sizes"};
-}
-
-//-----------------------------------------------------------------------------
-
-OpenCLSorting::sort_big_blocks_t OpenCLSorting::get_sorting_big_blocks()
-{
-    cl::Program program(context_, kernel_, BUILD_KERNEL_IMMEDIATELY);
-    return sort_big_blocks_t{program, "big_block_sizes"};
-}
-
-//-----------------------------------------------------------------------------
-
-inline OpenCLSorting::big_compare_distance_t OpenCLSorting::get_big_compare_distance()
-{
-    cl::Program program(context_, kernel_, BUILD_KERNEL_IMMEDIATELY);
-    return big_compare_distance_t{program, "big_compare_distance"};
-}
-
-//-----------------------------------------------------------------------------
-
-inline OpenCLSorting::small_compare_distance_t OpenCLSorting::get_small_compare_distance()
-{
-    cl::Program program(context_, kernel_, BUILD_KERNEL_IMMEDIATELY);
-    return small_compare_distance_t{program, "small_compare_distance"};
-}
-
-//-----------------------------------------------------------------------------
-
-template <typename It>
-void OpenCLSorting::sort_local(It begin, It end)
-{
-ON_TIME(
-    cl_ulong GPUTimeStart;
-    cl_ulong GPUTimeFin;
-    unsigned long long gpu_time = 0;
-) /* ON_TIME */
-
-    using type = typename It::value_type;
-
-    add_type_define_in_kernel<It>();
-
-    size_t cl_buf_size;
-    cl::Buffer cl_data = copy_input_on_queue(begin, end, cl_buf_size);
-
-    sort_small_blocks_t small_blocks_sizes = get_sorting_small_blocks();
-    big_compare_distance_t big_compare_distance = get_big_compare_distance();
-    small_compare_distance_t small_compare_distance = get_small_compare_distance();
-
-    cl::EnqueueArgs Args1(queue_, cl::NDRange(cl_buf_size), cl::NDRange(local_size_));
-    cl::EnqueueArgs Args2(queue_, cl::NDRange(cl_buf_size));
-    cl::EnqueueArgs Args3(queue_, cl::NDRange(cl_buf_size), cl::NDRange(local_size_));
-
-    cl::Event Evt = small_blocks_sizes(Args1, cl_data);
-    Evt.wait();
-ON_TIME(
-    GPUTimeStart = Evt.getProfilingInfo<CL_PROFILING_COMMAND_START>();
-    GPUTimeFin = Evt.getProfilingInfo<CL_PROFILING_COMMAND_END>();
-    gpu_time += (GPUTimeFin - GPUTimeStart);
-) /* ON_TIME */
-
-    for (cl_uint block_size = local_size_ << 1; block_size <= cl_buf_size; block_size <<= 1)
-    {
-        for (cl_uint stage_comparing_distance = (block_size >> 1); stage_comparing_distance >= local_size_; stage_comparing_distance >>= 1)
-        {
-            Evt = big_compare_distance(Args2, cl_data, block_size, stage_comparing_distance);
-            Evt.wait();
-ON_TIME(
-    GPUTimeStart = Evt.getProfilingInfo<CL_PROFILING_COMMAND_START>();
-    GPUTimeFin = Evt.getProfilingInfo<CL_PROFILING_COMMAND_END>();
-    gpu_time += (GPUTimeFin - GPUTimeStart);
-) /* ON_TIME */
-        }
-
-        Evt = small_compare_distance(Args3, cl_data, block_size);
-        Evt.wait();
-ON_TIME(
-    GPUTimeStart = Evt.getProfilingInfo<CL_PROFILING_COMMAND_START>();
-    GPUTimeFin = Evt.getProfilingInfo<CL_PROFILING_COMMAND_END>();
-    gpu_time += (GPUTimeFin - GPUTimeStart);
-) /* ON_TIME */
-    }
-
-    cl::copy(queue_, cl_data, begin, end);
-
-ON_TIME(
-    gpu_time /= 1000000;
-    std::cout << "(GPU: " << gpu_time << ", ";
-) /* ON_TIME */
+    return sort_t{program, "bitonic_sort_gpu"};
 }
 
 //-----------------------------------------------------------------------------
@@ -379,50 +281,26 @@ ON_TIME(
 template <typename It>
 inline void OpenCLSorting::sort(It begin, It end)
 {
-ON_TIME(
-    cl_ulong GPUTimeStart;
-    cl_ulong GPUTimeFin;
-    unsigned long long gpu_time = 0;
-) /* ON_TIME */
-
     add_type_define_in_kernel<It>();
 
     size_t cl_buf_size;
     cl::Buffer cl_data = copy_input_on_queue(begin, end, cl_buf_size);
+    sort_t gpu_part_of_sort = get_gpu_part_of_sort_function();
 
-    sort_small_blocks_t sorting_small_blocks = get_sorting_small_blocks();
+	cl::NDRange GlobalRange(cl_buf_size);
+    cl::NDRange LocalRange(32);
+    cl::EnqueueArgs Args(queue_, GlobalRange);
 
-    cl::NDRange GlobalRange(cl_buf_size);
-    cl::NDRange LocalRange(local_size_);
-
-    cl::EnqueueArgs ArgsSmallBlocks(queue_, GlobalRange, LocalRange);
-    cl::Event FirstSortingSteps = sorting_small_blocks(ArgsSmallBlocks, cl_data);
-    FirstSortingSteps.wait();
-
-ON_TIME(
-    GPUTimeStart = FirstSortingSteps.getProfilingInfo<CL_PROFILING_COMMAND_START>();
-    GPUTimeFin = FirstSortingSteps.getProfilingInfo<CL_PROFILING_COMMAND_END>();
-    gpu_time += (GPUTimeFin - GPUTimeStart);
-) /* ON_TIME */
-
-    sort_big_blocks_t sorting_big_blocks = get_sorting_big_blocks();
-
-    cl::EnqueueArgs ArgsBigBlocks(queue_, GlobalRange);
-
-    cl::Event LastSortingSteps = sorting_big_blocks(ArgsBigBlocks, cl_data, cl_buf_size);
-    LastSortingSteps.wait();
-
-ON_TIME(
-    GPUTimeStart = LastSortingSteps.getProfilingInfo<CL_PROFILING_COMMAND_START>();
-    GPUTimeFin = LastSortingSteps.getProfilingInfo<CL_PROFILING_COMMAND_END>();
-    gpu_time += (GPUTimeFin - GPUTimeStart);
-) /* ON_TIME */
+    cl::Event Evt = gpu_part_of_sort(Args, cl_data, cl_buf_size);
+    Evt.wait();
 
     cl::copy(queue_, cl_data, begin, end);
 
 ON_TIME(
-    gpu_time /= 1000000;
-    std::cout << "(GPU: " << gpu_time << ", ";
+    cl_ulong GPUTimeStart = Evt.getProfilingInfo<CL_PROFILING_COMMAND_START>();
+    ck_ulong GPUTimeFin = Evt.getProfilingInfo<CL_PROFILING_COMMAND_END>();
+    GDur = (GPUTimeFin - GPUTimeStart) / 1000000; // ns -> ms
+    std::cout << "GPU pure time measured: " << GDur << " ms" << std::endl;
 ) /* ON_TIME */
 }
 

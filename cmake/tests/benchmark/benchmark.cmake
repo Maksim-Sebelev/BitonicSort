@@ -42,8 +42,7 @@ else()
   create_benchmark("${BITONICSORT_LOCAL_TIME_MEASURE}" "bitonicsort-local-time-measure.cpp" "OpenCL::OpenCL" "")
 endif()
 
-# TODO: back next line
-# create_benchmark("${STDSORT_TIME_MEASURE}" "stdsort-time-measure.cpp" "" "")
+create_benchmark("${STDSORT_TIME_MEASURE}" "stdsort-time-measure.cpp" "" "")
 
 # =================================================================================================
 # creating run_test from run_test.sh.in

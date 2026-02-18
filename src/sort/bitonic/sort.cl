@@ -200,7 +200,7 @@ __kernel void bitonic_sort_gpu(__global TYPE* data, uint size)
 {
     uint it1 = get_global_id(0);
     uint it2;
-    uint block_size = 2 * LOCAL_SIZE;
+    uint block_size = 2;
     uint compare_distance_bit_mask;
 
     for (; block_size <= size; block_size <<= 1)

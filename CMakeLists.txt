@@ -48,8 +48,8 @@ if (BITONICSORT_MODULES)
 
 # ==================================================================================
 
+  set(SORT_SRC_DIR ${SRC_DIR}/sort)
 
-if (BITONICSORT_MODULES)
 # ==================================================================================
 # add math library
 
@@ -57,7 +57,7 @@ if (BITONICSORT_MODULES)
   set(MATH_SRC_DIR ${SRC_DIR}/math)
 
   set(MATH_SRCS
-    ${MATH_SRC_DIR}/math.cppm
+      ${MATH_SRC_DIR}/math.cppm
   )
 
   add_library(${MATH_LIB})
@@ -87,11 +87,13 @@ if (BITONICSORT_MODULES)
 # add bitonic sort library
 
   set(BITONICSORT_LIB bitonic)
+  set(BITONICSORT_SRC_DIR ${SORT_SRC_DIR}/bitonic)
 
   set(BITONICSORT_SRCS
       ${BITONICSORT_SRC_DIR}/sort.cppm
   )
 
+  set(BITONICSORT_OPENCL_KERNEL ${BITONICSORT_SRC_DIR}/sort.cl)
 
   add_library(${BITONICSORT_LIB})
 

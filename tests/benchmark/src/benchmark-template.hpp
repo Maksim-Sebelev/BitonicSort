@@ -21,7 +21,9 @@ int main()
         v.push_back(vi);
 
     std::chrono::high_resolution_clock::time_point TimeStart = std::chrono::high_resolution_clock::now();
+
     SORT_FUNCTION(v.begin(), v.end());
+
     std::chrono::high_resolution_clock::time_point TimeFin = std::chrono::high_resolution_clock::now();
 
     unsigned long sort_time = std::chrono::duration_cast<std::chrono::milliseconds>(TimeFin - TimeStart).count();
