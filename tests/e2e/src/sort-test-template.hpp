@@ -7,10 +7,15 @@ dont using import std, because include opencl
 #error "Please define macro 'SORT_FUNCTION' before include this file"
 #endif /* not defined(SORT_FUNCTION) */
 
+#if defined(BITONICSORT_CXX_23_SUPPORT)
+import std;
+#else /* defined (BITONICSORT_CXX_23_SUPPORT) */
 #include <iostream>
 #include <vector>
 #include <stdexcept>
+#endif /* defined (BITONICSORT_CXX_23_SUPPORT) */
 
+#include "global/macros.hpp"
 
 #ifndef CL_HPP_TARGET_OPENCL_VERSION
 #define CL_HPP_MINIMUM_OPENCL_VERSION 120
@@ -20,10 +25,7 @@ dont using import std, because include opencl
 #define CL_HPP_CL_1_2_DEFAULT_BUILD
 #define CL_HPP_ENABLE_EXCEPTIONS
 
-#include <CL/cl.h>
-#include <CL/opencl.hpp>
-
-#include "global/macros.hpp"
+#include "CL/opencl.hpp"
 
 ON_STACKTRACE(import exception_stack_trace;)
 
@@ -34,7 +36,7 @@ try
 
     int vi;
     while (std::cin >> vi)
-        v.push_back(vi);
+        v.emplace_back(vi);
 
     SORT_FUNCTION(v.begin(), v.end());
 

@@ -315,10 +315,14 @@ function run_cmake()
 
     if [ ${TESTS} == "ON" ]; then
         cmake_command="${cmake_command} -DNO_TESTS=OFF"
+    else
+        cmake_command="${cmake_command} -DNO_TESTS=ON"
     fi
 
     if [ ${BENCHMARK} == "ON" ]; then
         cmake_command="${cmake_command} -DNO_BENCHMARK=OFF"
+    else
+        cmake_command="${cmake_command} -DNO_BENCHMARK=ON"
     fi
 
     if [ ${CMAKE_EXPORT_COMPILE_COMMANDS} == "ON" ]; then

@@ -83,7 +83,6 @@ if (BITONICSORT_MODULES)
   target_compile_definitions(${MATH_LIB}
     PRIVATE
       $<$<BOOL:${CMAKE_CXX_MODULE_STD}>:BITONICSORT_CXX_23_SUPPORT>
-
   )
 
   add_target_stacktrace_dump_lib_on_debug(${MATH_LIB})

@@ -18,7 +18,7 @@ int main()
 
     int vi;
     while (std::cin >> vi)
-        v.push_back(vi);
+        v.emplace_back(vi);
 
     std::chrono::high_resolution_clock::time_point TimeStart = std::chrono::high_resolution_clock::now();
 

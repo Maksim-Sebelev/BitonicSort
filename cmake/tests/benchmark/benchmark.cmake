@@ -7,10 +7,10 @@ function(create_benchmark target source to_link to_include)
     add_executable(${target}
       ${BENCHMARK_SRC_DIR}/${source}
     )
+
     target_link_libraries(${target}
       PRIVATE
         ${to_link}
-        # $<$<BOOL:${BITONICSORT_HEADER_ONLY}>:OpenCL::OpenCL>
     )
 
     target_include_directories(${target}
@@ -24,7 +24,7 @@ function(create_benchmark target source to_link to_include)
       PRIVATE
         $<$<BOOL:${BITONICSORT_MODULES}>:BITONICSORT_MODULES>
         $<$<BOOL:${CMAKE_CXX_MODULE_STD}>:BITONICSORT_CXX_23_SUPPORT>
-        BITONICSORT_OPENCL_KERNEL="${SRC_DIR}/sort/bitonic/sort.cl"
+        $<$<BOOL:${BITONICSORT_HEADER_ONLY}>:BITONICSORT_OPENCL_KERNEL="${SRC_DIR}/sort/bitonic/sort.cl">
     )
 endfunction(create_benchmark target)
 
