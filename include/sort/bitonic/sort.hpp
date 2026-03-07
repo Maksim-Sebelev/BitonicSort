@@ -21,17 +21,20 @@
 #define CL_HPP_TARGET_OPENCL_VERSION 120
 #endif /* CL_HPP_TARGET_OPENCL_VERSION */
 
+#ifndef CL_HPP_CL_1_2_DEFAULT_BUILD
 #define CL_HPP_CL_1_2_DEFAULT_BUILD
-#define CL_HPP_ENABLE_EXCEPTIONS
+#endif /* CL_HPP_CL_1_2_DEFAULT_BUILD */
 
-#include "CL/opencl.hpp"
+#ifndef CL_HPP_ENABLE_EXCEPTIONS
+#define CL_HPP_ENABLE_EXCEPTIONS
+#endif /* CL_HPP_ENABLE_EXCEPTIONS */
+
+#include <CL/opencl.hpp>
 
 //----------------------------------------------------------------------------------------------------------------------------
 
 #if not defined(BITONICSORT_OPENCL_KERNEL)
 #error "Please define 'BITONICSORT_OPENCL_KERNEL' before include this header. Witout this macro we cannot find kernnel, because didnt know absolute way."
-#else /* not defined(BITONICSORT_OPENCL_KERNEL) */
-#define S_BITONICSORT_OPENCL_KERNEL BITONICSORT_OPENCL_KERNEL
 #endif /* not defined(BITONICSORT_OPENCL_KERNEL) */
 
 //----------------------------------------------------------------------------------------------------------------------------
@@ -134,7 +137,7 @@ class OpenCLSorting
     platform_(select_platform()),
     context_(get_gpu_context(platform_())),
     queue_(context_, cl::QueueProperties::Profiling | cl::QueueProperties::OutOfOrder), 
-    kernel_(readFile(S_BITONICSORT_OPENCL_KERNEL)),
+    kernel_(readFile(BITONICSORT_OPENCL_KERNEL)),
     local_size_(256)
     {}
 

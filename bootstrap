@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -euo pipefail
 
 # Console colors
@@ -30,7 +29,6 @@ function skip_line_in_console
     echo
 }
 
-
 # set some script-global variables
 project_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 build_dir="$project_dir/build"
@@ -51,7 +49,6 @@ BENCHMARK=OFF
 TESTS=OFF
 SANITIZE=OFF
 INSTALL_DEPENDENCIES=OFF
-
 
 # help message function
 function usage()
@@ -98,7 +95,7 @@ Options:
                         in cmake format. You can read about this with 'cmake -G'.
                         Default value: ${BUILD_SYSTEM}
 
-  -t, --build-tests     Build tests for this library.
+  -t, --tests     Build tests for this library.
                             Use 'ctest' to run tests.
 
   -b, --benchmark       Build benchmark-executables sources.
@@ -128,7 +125,7 @@ function parse_options
     custom_echo "${CONSOLE_COLOR_GREEN}" "${CONSOLE_BIND_FONT}" "Parse script options..."
 
     local SHORT_OPTS="p:c:g:tdsh"
-    local LONG_OPTS="build-inplace,prefix:,compiler:,generator:,build-tests,benchmark,debug,sanitize,help,cxx-20-support,cmake-experimental-cxx-import-std:,cmake-export-compile-commands,install-dependencies"
+    local LONG_OPTS="build-inplace,prefix:,compiler:,generator:,tests,benchmark,debug,sanitize,help,cxx-20-support,cmake-experimental-cxx-import-std:,cmake-export-compile-commands,install-dependencies"
 
     TEMP=$(getopt -o "$SHORT_OPTS" \
                   -l "$LONG_OPTS" \
@@ -186,7 +183,7 @@ function parse_options
                 shift 2
                 ;;
 
-            -t | --build-tests)
+            -t | --tests)
                 TESTS=ON
                 shift
                 ;;

@@ -28,10 +28,10 @@ chmod +x bootsrtap install;
 
 Вероятно, для обычного пользования вам подойдет такой набор:
 ```bash
-./bootstrap --build-inplace --build-tests --benchmark --cmake-export-compile-commands
+./bootstrap --build-inplace --tests --benchmark --cmake-export-compile-commands
 ```
 
-Если хотите получить тестирование и провести бенчмарк на своем устройстве, то укажите следующие опции: `--build-tests` и  `--benchmark`
+Если хотите получить тестирование и провести бенчмарк на своем устройстве, то укажите следующие опции: `--tests` и  `--benchmark`
 
 ```bash
 ./bootstrap --build-inplace 
@@ -47,12 +47,12 @@ chmod +x bootsrtap install;
 Для modules-based:
 
 ```bash
-./bootstrap --build-inplace --build-tests --benchmark --cmake-export-compile-commands --cxx-20-support
+./bootstrap --build-inplace --tests --benchmark --cmake-export-compile-commands --cxx-20-support
 ```
 
 Для header-only:
 ```bash
-./bootstrap --build-inplace --build-tests --bechmark
+./bootstrap --build-inplace --tests --bechmark
 ```
 
 <br>

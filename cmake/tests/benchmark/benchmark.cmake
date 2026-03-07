@@ -11,6 +11,7 @@ function(create_benchmark target source to_link to_include)
     target_link_libraries(${target}
       PRIVATE
         ${to_link}
+        OpenCL::OpenCL
     )
 
     target_include_directories(${target}
@@ -38,8 +39,8 @@ if (BITONICSORT_MODULES)
   create_benchmark("${BITONICSORST_TIME_MEASURE}" "bitonicsort-time-measure.cpp" "${BITONICSORT_LIB}" "")
   create_benchmark("${BITONICSORT_LOCAL_TIME_MEASURE}" "bitonicsort-local-time-measure.cpp" "${BITONICSORT_LIB}" "")
 else()
-  create_benchmark("${BITONICSORST_TIME_MEASURE}" "bitonicsort-time-measure.cpp" "OpenCL::OpenCL" "")
-  create_benchmark("${BITONICSORT_LOCAL_TIME_MEASURE}" "bitonicsort-local-time-measure.cpp" "OpenCL::OpenCL" "")
+  create_benchmark("${BITONICSORST_TIME_MEASURE}" "bitonicsort-time-measure.cpp" "" "")
+  create_benchmark("${BITONICSORT_LOCAL_TIME_MEASURE}" "bitonicsort-local-time-measure.cpp" "" "")
 endif()
 
 create_benchmark("${STDSORT_TIME_MEASURE}" "stdsort-time-measure.cpp" "" "")

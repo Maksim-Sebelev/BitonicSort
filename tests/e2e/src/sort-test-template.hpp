@@ -7,13 +7,9 @@ dont using import std, because include opencl
 #error "Please define macro 'SORT_FUNCTION' before include this file"
 #endif /* not defined(SORT_FUNCTION) */
 
-#if defined(BITONICSORT_CXX_23_SUPPORT)
-import std;
-#else /* defined (BITONICSORT_CXX_23_SUPPORT) */
 #include <iostream>
 #include <vector>
 #include <stdexcept>
-#endif /* defined (BITONICSORT_CXX_23_SUPPORT) */
 
 #include "global/macros.hpp"
 
