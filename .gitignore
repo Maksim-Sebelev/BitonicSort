@@ -42,3 +42,14 @@ tests/benchmark/dat/back-sorted-arrays/7000000-elem.dat
 tests/benchmark/dat/back-sorted-arrays/8000000-elem.dat
 tests/benchmark/dat/back-sorted-arrays/9000000-elem.dat
 tests/benchmark/dat/back-sorted-arrays/1000000-elem.dat
+
+tests/benchmark/dat/2-power/0001.dat
+tests/benchmark/dat/2-power/0002.dat
+tests/benchmark/dat/2-power/0003.dat
+tests/benchmark/dat/2-power/0004.dat
+tests/benchmark/dat/2-power/0005.dat
+tests/benchmark/dat/2-power/0006.dat
+tests/benchmark/dat/2-power/0007.dat
+tests/benchmark/dat/2-power/0008.dat
+tests/benchmark/dat/2-power/0009.dat
+tests/benchmark/dat/2-power/00010.dat
