@@ -32,7 +32,7 @@ try
 
     int vi;
     while (std::cin >> vi)
-        v.emplace_back(vi);
+        v.push_back(vi);
 
     SORT_FUNCTION(v.begin(), v.end());
 

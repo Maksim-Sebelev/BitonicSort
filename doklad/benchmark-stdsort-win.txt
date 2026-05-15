@@ -1,0 +1,19 @@
+
+
+Elements: 10                | Elements: 100               | Elements: 1000
+Bitonic:                    | Bitonic:                    | Bitonic:
+19 18 18 18 20 18 19 18 18  | 19 18 19 18 18 18 19 18 18  | 19 18 19 18 19 18 18 18 18
+std::sort:                  | std::sort:                  | std::sort:
+0 0 0 0 0 0 0 0 0           | 0 0 0 0 0 0 0 0 0           | 0 0 0 0 0 0 0 0 0
+
+Elements: 10000             | Elements: 100000            | Elements: 200000
+Bitonic:                    | Bitonic:                    | Bitonic:
+18 18 19 18 18 18 19 18 18  | 20 18 19 18 20 18 19 18 19  | 21 23 21 20 23 21 19 19 20
+std::sort:                  | std::sort:                  | std::sort:
+0 0 0 0 0 0 0 0 0           | 4 4 4 4 4 4 4 4 4           | 9 9 9 10 9 9 9 10 9
+
+Elements: 300000            | Elements: 400000            | Elements: 500000
+Bitonic:                    | Bitonic:                    | Bitonic:
+22 23 23 22 21 22 22 32 24  | 22 23 22 23 27 22 23 24 24  | 28 24 27 28 22 22 22 23 23
+std::sort:                  | std::sort:                  | std::sort:
+15 15 14 16 14 15 14 14 15  | 21 21 20 20 19 21 21 20 21  | 27 28 25 27 25 27 25 26 26

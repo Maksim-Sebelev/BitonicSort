@@ -4,7 +4,6 @@ set -uo pipefail
 
 bitonicsort="@PROJECT_BINARY_DIR@/@BITONICSORST_TIME_MEASURE@"
 stdsort="@PROJECT_BINARY_DIR@/@STDSORT_TIME_MEASURE@"
-localsort="@PROJECT_BINARY_DIR@/@BITONICSORT_LOCAL_TIME_MEASURE@"
 
 benchmark_dat_dir="@BENCHMARK_DAT_DIR@"
 
@@ -35,8 +34,6 @@ function run_comparing_benchmark
 {
     local dir="$1"
 
-    # TODO: remove local benchmark
-    run_benchmark "Local" "$localsort" "$dir"
     run_benchmark "Bitonic" "$bitonicsort" "$dir"
     run_benchmark "std::sort" "$stdsort" "$dir"
 
@@ -74,6 +71,15 @@ function run_benchmark_with_back_sorted_arrays
     echo
 }
 
+function run_benchmark_with_2power_sizes
+{
+    dir="$benchmark_dat_dir/2-power"
+
+    echo "2 power:"
+    run_comparing_benchmark "$dir"
+
+    echo
+}
 
 function run_all_random_init_arrays_bencmark
 {
@@ -107,3 +113,5 @@ echo
 run_all_random_init_arrays_bencmark
 run_benchmark_with_sorted_arrays
 run_benchmark_with_back_sorted_arrays
+
+run_benchmark_with_2power_sizes

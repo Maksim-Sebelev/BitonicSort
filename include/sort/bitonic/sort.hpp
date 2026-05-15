@@ -187,7 +187,7 @@ inline cl::Buffer OpenCLSorting::copy_input_on_queue(It begin, It end, size_t& c
 inline OpenCLSorting::sort_t OpenCLSorting::get_gpu_part_of_sort_function()
 {
     cl::Program program(context_, kernel_, BUILD_KERNEL_IMMEDIATELY);
-    return sort_t{program, "bitonic_sort_gpu"};
+    return sort_t{program, "bitonic_sort_gpu_part_big_block_sizes_global_mem"};
 }
 
 //-----------------------------------------------------------------------------
@@ -195,7 +195,7 @@ inline OpenCLSorting::sort_t OpenCLSorting::get_gpu_part_of_sort_function()
 inline OpenCLSorting::small_blocks_sizes_t OpenCLSorting::get_small_blocks_sizes()
 {
     cl::Program program(context_, kernel_, BUILD_KERNEL_IMMEDIATELY);
-    return small_blocks_sizes_t{program, "small_blocks_sizes"};
+    return small_blocks_sizes_t{program, "bitonic_sort_gpu_small_blocks_sizes_in_local_mem"};
 }
 
 //-----------------------------------------------------------------------------
@@ -203,7 +203,7 @@ inline OpenCLSorting::small_blocks_sizes_t OpenCLSorting::get_small_blocks_sizes
 inline OpenCLSorting::big_compare_distance_t OpenCLSorting::get_big_compare_distance()
 {
     cl::Program program(context_, kernel_, BUILD_KERNEL_IMMEDIATELY);
-    return big_compare_distance_t{program, "big_compare_distance"};
+    return big_compare_distance_t{program, "bitonic_sort_gpu_big_steps_big_stages"};
 }
 
 //-----------------------------------------------------------------------------
@@ -211,7 +211,7 @@ inline OpenCLSorting::big_compare_distance_t OpenCLSorting::get_big_compare_dist
 inline OpenCLSorting::small_compare_distance_t OpenCLSorting::get_small_compare_distance()
 {
     cl::Program program(context_, kernel_, BUILD_KERNEL_IMMEDIATELY);
-    return small_compare_distance_t{program, "small_compare_distance"};
+    return small_compare_distance_t{program, "bitonic_sort_gpu_big_steps_small_stages"};
 }
 
 //-----------------------------------------------------------------------------
@@ -232,15 +232,15 @@ ON_TIME(
     size_t cl_buf_size;
     cl::Buffer cl_data = copy_input_on_queue(begin, end, cl_buf_size); msg_assert(cl_buf_size >= LOCAL_SIZE, "this need for simplify of work with small sizes");
 
-    small_blocks_sizes_t small_blocks_sizes = get_small_blocks_sizes();
-    big_compare_distance_t big_compare_distance = get_big_compare_distance();
-    small_compare_distance_t small_compare_distance = get_small_compare_distance();
+    small_blocks_sizes_t bitonic_sort_gpu_small_blocks_sizes_in_local_mem = get_small_blocks_sizes();
+    big_compare_distance_t bitonic_sort_gpu_big_steps_big_stages = get_big_compare_distance();
+    small_compare_distance_t bitonic_sort_gpu_big_steps_small_stages = get_small_compare_distance();
 
     cl::EnqueueArgs Args1(queue_, cl::NDRange(cl_buf_size), cl::NDRange(local_size_));
     cl::EnqueueArgs Args2(queue_, cl::NDRange(cl_buf_size));
     cl::EnqueueArgs Args3(queue_, cl::NDRange(cl_buf_size), cl::NDRange(local_size_));
 
-    cl::Event Evt = small_blocks_sizes(Args1, cl_data);
+    cl::Event Evt = bitonic_sort_gpu_small_blocks_sizes_in_local_mem(Args1, cl_data);
     Evt.wait();
 ON_TIME(
     GPUTimeStart = Evt.getProfilingInfo<CL_PROFILING_COMMAND_START>();
@@ -252,7 +252,7 @@ ON_TIME(
     {
         for (cl_uint stage_comparing_distance = (block_size >> 1); stage_comparing_distance >= local_size_; stage_comparing_distance >>= 1)
         {
-            Evt = big_compare_distance(Args2, cl_data, block_size, stage_comparing_distance);
+            Evt = bitonic_sort_gpu_big_steps_big_stages(Args2, cl_data, block_size, stage_comparing_distance);
             Evt.wait();
 ON_TIME(
     GPUTimeStart = Evt.getProfilingInfo<CL_PROFILING_COMMAND_START>();
@@ -261,7 +261,7 @@ ON_TIME(
 ) /* ON_TIME */
         }
 
-        Evt = small_compare_distance(Args3, cl_data, block_size);
+        Evt = bitonic_sort_gpu_big_steps_small_stages(Args3, cl_data, block_size);
         Evt.wait();
 ON_TIME(
     GPUTimeStart = Evt.getProfilingInfo<CL_PROFILING_COMMAND_START>();
